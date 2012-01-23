@@ -37,6 +37,23 @@ class DataObjectAsPage extends DataObject {
 		"Versioned('Stage', 'Live')"
 	);
 
+	//Better Search (Requires Better Search Module)
+	static $indexes = array( 
+		"SearchFields" => "fulltext (Title, MetaDescription, Content)", 
+		"TitleSearchFields" => "fulltext (Title)",
+        "URLSegment" => true	
+	);
+
+	static $frontend_searchable_fields = array(
+		'Title',
+		'MetaDescription',
+		'Content'
+	);
+	
+	static $search_heading = "Title"; 
+	
+	static $search_content = "Content";
+
 	public static $default_sort = 'Created DESC';
 
 	//Return the Title for use in Menu2
@@ -44,11 +61,6 @@ class DataObjectAsPage extends DataObject {
 	{
 		return $this->Title;
 	}
-	
-	//Better Search (Requires Better Search Module)
-	static $indexes = array( 
-        "URLSegment" => true	
-	);
 
 	//Chek if current user can view
 	public function canView($member = null)
@@ -79,33 +91,33 @@ class DataObjectAsPage extends DataObject {
 	}
 	
     //Create duplicate button
-    public function getCMSActions()
-    {
-        $Actions = parent::getCMSActions();
-
-	    
-	    //Create the Save & Publish action
-	    $PublishAction = FormAction::create('doPublish', 'Save & Publish');
-	    $PublishAction->describe("Publish this item");	      
-        $Actions->insertFirst($PublishAction);
-          
+	public function getCMSActions()
+	{
+		$Actions = parent::getCMSActions();
+		
+		
+		//Create the Save & Publish action
+		$PublishAction = FormAction::create('doPublish', 'Save & Publish');
+		$PublishAction->describe("Publish this item");	      
+		$Actions->insertFirst($PublishAction);
+		  
 		 if($this->Status != 'Draft')
 		 {
-	        //Create the Unpublish action
-	        $unPublishAction = FormAction::create('doUnpublish', 'Unpublish');
-	        $unPublishAction->describe("Unpublish this item");
+		    //Create the Unpublish action
+		    $unPublishAction = FormAction::create('doUnpublish', 'Unpublish');
+		    $unPublishAction->describe("Unpublish this item");
 			$Actions->insertFirst($unPublishAction);		 	
 		 }
 		 
- 		//Create the Duplicate action
-        $DuplicateAction = FormAction::create('duplicate', 'Duplicate Object');
-        $DuplicateAction->describe("Duplicate this item");
+		//Create the Duplicate action
+		$DuplicateAction = FormAction::create('duplicate', 'Duplicate Object');
+		$DuplicateAction->describe("Duplicate this item");
          
         //add it to the existing actions
         $Actions->insertFirst($DuplicateAction); 		
          
-        return $Actions;
-    } 
+		return $Actions;
+	} 
 		
 	public function getCMSFields() 
 	{
@@ -341,9 +353,9 @@ class DataObjectAsPage extends DataObject {
 	/*
 	 * Set URLSegment to be unique on write
 	 */
-    public function onBeforeWrite()
-    {
-        parent::onBeforeWrite();
+	public function onBeforeWrite()
+	{
+	    parent::onBeforeWrite();
 	
 		//Set MetaData
 		if(!$this->MetaTitle)
@@ -351,46 +363,46 @@ class DataObjectAsPage extends DataObject {
 			$this->MetaTitle = $this->Title;
 		}
 		
-        // If there is no URLSegment set, generate one from Title
-        if((!$this->URLSegment || $this->URLSegment == 'new-item') && $this->Title != 'New Item') 
-        {
-            $this->URLSegment = SiteTree::generateURLSegment($this->Title);
-        } 
-        else if($this->isChanged('URLSegment')) 
-        {
-            // Make sure the URLSegment is valid for use in a URL
-            $segment = preg_replace('/[^A-Za-z0-9]+/','-',$this->URLSegment);
-            $segment = preg_replace('/-+/','-',$segment);
-              
-            // If after sanitising there is no URLSegment, give it a reasonable default
-            if(!$segment) {
-                $segment = "item-$this->ID";
-            }
-            $this->URLSegment = $segment;
-        }
-  
-        // Ensure that this object has a non-conflicting URLSegment value.
-        $count = 2;
-
+	    // If there is no URLSegment set, generate one from Title
+	    if((!$this->URLSegment || $this->URLSegment == 'new-item') && $this->Title != 'New Item') 
+	    {
+	        $this->URLSegment = SiteTree::generateURLSegment($this->Title);
+	    } 
+	    else if($this->isChanged('URLSegment')) 
+	    {
+	        // Make sure the URLSegment is valid for use in a URL
+	        $segment = preg_replace('/[^A-Za-z0-9]+/','-',$this->URLSegment);
+	        $segment = preg_replace('/-+/','-',$segment);
+	          
+	        // If after sanitising there is no URLSegment, give it a reasonable default
+	        if(!$segment) {
+	            $segment = "item-$this->ID";
+	            }
+	            $this->URLSegment = $segment;
+	        }
+	  
+	        // Ensure that this object has a non-conflicting URLSegment value.
+	    $count = 2;
+	
 		$URLSegment = $this->URLSegment;
 		$ID = $this->ID;
-
-        while($this->LookForExistingURLSegment($URLSegment, $ID)) 
-        {     	
-            $URLSegment = preg_replace('/-[0-9]+$/', null, $URLSegment) . '-' . $count;
-            $count++;
-        }
+	
+	    while($this->LookForExistingURLSegment($URLSegment, $ID)) 
+	    {     	
+	        $URLSegment = preg_replace('/-[0-9]+$/', null, $URLSegment) . '-' . $count;
+	        $count++;
+	    }
 		
 		$this->URLSegment = $URLSegment;
-    }
+	}
 	
-    //Test whether the URLSegment exists already on another Item
-    public function LookForExistingURLSegment($URLSegment, $ID)
-    {
+	//Test whether the URLSegment exists already on another Item
+	public function LookForExistingURLSegment($URLSegment, $ID)
+	{
 		$Where = "`DataObjectAsPage`.`URLSegment` = '" . $URLSegment . "' AND `DataObjectAsPage`.`ID` != $ID";
-       	$Item = (DataObject::get_one('DataObjectAsPage', $Where));
+	   	$Item = (DataObject::get_one('DataObjectAsPage', $Where));
 		
 		return $Item;    	
-    }
+	}
 
 }

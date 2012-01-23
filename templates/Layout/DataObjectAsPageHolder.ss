@@ -1,4 +1,5 @@
 <div class="typography">
+	
 	<% if Children %>
 		<% include SideBar %>
 		<div id="Content">
@@ -6,10 +7,15 @@
 	
 	  	<% include BreadCrumbs %>
 		
+		<ul>
 		<% control Items %>
-			<h2>$Title</h2>
-			<a href="$Link">View</a>
+			<li>
+				<h2>$Title</h2>
+				<p>$Content.FirstParagraph</p>
+				<a href="$Link">View</a>
+			</li>
 		<% end_control %>
+		</ul>
 		
 	<% if Children %>
 		</div>
