@@ -18,7 +18,7 @@ $(document).ready(function() {
    $('button[name=action_clearsearch]').click(doList);
 
 	//Duplicate Button
-	$('#right input:submit').live('click', function(){
+	$('#right input[name=action_duplicate],#right input[name=action_doPublish],#right input[name=action_doUnpublish]').live('click', function(){
 		var form = $('#right form');
 		var formAction = form.attr('action') + '?' + $(this).fieldSerialize();
 		
@@ -48,4 +48,5 @@ $(document).ready(function() {
 	});
 	
 });
+
 })(jQuery);

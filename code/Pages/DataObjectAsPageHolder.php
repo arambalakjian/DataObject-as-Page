@@ -6,18 +6,23 @@ class DataObjectAsPageHolder extends Page
 	
 	static $db = array(
 		'ItemsPerPage' => 'Int',
-		'ItemsAsChildren' => 'Boolean'
+		'ItemsAsChildren' => 'Boolean',
+		'Paginate' => 'Boolean'
 	);
 	
 	static $defaults = array(
-		'ItemsPerPage' => 10
+		'ItemsPerPage' => 10,
+		'Paginate' => true,
+		'ItemsAsChildren' => false
 	);
 	
 	public function getCMSFields()
 	{
 		$fields = parent::getCMSFields();
 		
-		$fields->addFieldToTab('Root.Behaviour', new NumericField('ItemsPerPage', 'Items per page'));
+		$fields->addFieldToTab('Root.Behaviour', new HeaderField('DOAP', 'DataObject Item Display'));
+		$fields->addFieldToTab('Root.Behaviour', new CheckboxField('Paginate', 'Paginate Items'));
+		$fields->addFieldToTab('Root.Behaviour', new NumericField('ItemsPerPage', 'Items per page (if paginated)'));
 		$fields->addFieldToTab('Root.Behaviour', new CheckboxField('ItemsAsChildren', 'Show DataObjects as Children of this page'));
 		
 		return $fields;
@@ -77,8 +82,6 @@ class DataObjectAsPageHolder extends Page
 	*/
 	public function FetchItems($ItemClass, $Filter = '', $Sort = Null, $Join = Null, $Limit = null)
 	{
-		
-		
 		//Set our status filter if in live mode
 		if(Versioned::get_reading_mode() == 'Stage.Live')
 		{
@@ -193,18 +196,6 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 		{
 			return DataObject::get_one($this->stat('item_class'), "URLSegment = '" . $URL . "'");
 		}		
-	}
-
-	public function SocialLink()
-	{
-		if($item = $this->getCurrentItem())
-		{
-			return $item->absoluteLink();
-		}
-		else
-		{
-			return parent::absoluteLink();
-		}
 	}
 	
 	/*

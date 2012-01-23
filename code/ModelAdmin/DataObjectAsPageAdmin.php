@@ -18,11 +18,9 @@ class DataObjectAsPageAdmin_RecordController extends ModelAdmin_RecordController
 	public function doPublish($data, $form, $request)
 	{
 		$form->saveInto($this->currentRecord);
-		
-		$this->currentRecord->Status = 'Published';	
 
-		$this->currentRecord->write();
-		
+		$this->currentRecord->doPublish();
+
         if(Director::is_ajax()) {
            	return $this->edit($request);
         } else {
@@ -34,12 +32,21 @@ class DataObjectAsPageAdmin_RecordController extends ModelAdmin_RecordController
 	{
 		$form->saveInto($this->currentRecord);
 		
-		$this->currentRecord->Status = 'Draft';	
-
-		$this->currentRecord->write();
+		$this->currentRecord->doUnpublish();
 		
         if(Director::is_ajax()) {
            	return $this->edit($request);
+        } else {
+            Director::redirectBack();
+        }
+	}	
+	
+	public function doDelete($data, $form, $request)
+	{
+		$this->currentRecord->doDelete();
+		
+        if(Director::is_ajax()) {
+           	$this->edit($request);
         } else {
             Director::redirectBack();
         }
@@ -49,13 +56,7 @@ class DataObjectAsPageAdmin_RecordController extends ModelAdmin_RecordController
          
         //Duplicate the object
         $Clone = $this->currentRecord->duplicate();
- 
-        //Change the title so we know we are looking at the copy
-        $Clone->Title = 'Copy of ' . $this->currentRecord->Title;
-        $Clone->Status = 'Draft';
-         
-        $Clone->write();
- 
+
         //Set the view to be our new duplicate
         $this->currentRecord = $Clone;
  
