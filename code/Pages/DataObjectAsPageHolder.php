@@ -145,6 +145,7 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 {
 	//Class Of Object Listied on this page
 	static $item_class = 'DataObjectAsPage';
+	static $item_sort = 'Created DESC';
 	
 	public static $allowed_actions = array(
 		'show'
@@ -156,7 +157,7 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 	function Items($Limit = null)
 	{
 		//Set Pagination if no limit set
-		if(!$Limit)
+		if(!$Limit && $this->Paginate)
 		{
 			//Pagination 
 			if(!isset($_GET['start']) || !is_numeric($_GET['start']) || (int)$_GET['start'] < 1){
@@ -172,7 +173,7 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 		$Where = ($this->hasMethod('getItemsWhere')) ? $this->getItemsWhere() : Null;
 		
 		//Set custom sort		
-		$Sort = ($this->hasMethod('getItemsSort')) ? $this->getItemsSort() : Null;
+		$Sort = ($this->hasMethod('getItemsSort')) ? $this->getItemsSort() : $this->stat('item_sort');
 		
 		//Set custom join	
 		$Join = ($this->hasMethod('getItemsJoin')) ? $this->getItemsJoin() : Null;
