@@ -23,15 +23,15 @@ Unpack and copy the mobile folder into your SilverStripe project.
 
 Create 3 new Classes; The Item class, the Admin Class and the Listing Page class.
 
-The Item class must extend DataObjectAsPage
-The Admin class must extend DataObjectAsPageAdmin
-The Listing Page class must extend DataObjectAsPageHolder and DataObjectAsPage_Controller
+* The Item class must extend DataObjectAsPage
+- Inside the Item Class you must define: static $listing_page_class = '[YourListingPageClass]';
 
-Inside the Item Class you must define: static $listing_page_class = '[YourListingPageClass]';
+* The Admin class must extend DataObjectAsPageAdmin
+- Inside the Admin Class, you need to define the standard ModelAdmin attributes
 
-Inside the Admin Class, you need to define the standard ModelAdmin attributes
+* The Listing Page class must extend DataObjectAsPageHolder and DataObjectAsPage_Controller
+- Inside the ListingPage Controller Class you must define: static $item_class = '[YourItemClass]';
 
-Inside the ListingPage Controller Class you must define: static $item_class = '[YourItemClass]';
 
 Run "dev/build" in your browser, for example: "http://localhost/silverstripe/dev/build?flush=all"
 
