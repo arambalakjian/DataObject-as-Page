@@ -10,6 +10,7 @@ class DataObjectAsPageAdmin extends ModelAdmin
 		
 	    // Remove all the junk that will break ModelAdmin
 	    Requirements::javascript(MOD_DOAP_DIR . '/javascript/jquery.dataobjectaspageadmin.js');
+		Requirements::CSS(MOD_DOAP_DIR . '/css/dataobjectaspageadmin.css');
 	}
 }
 

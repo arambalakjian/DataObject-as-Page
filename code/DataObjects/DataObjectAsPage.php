@@ -127,13 +127,13 @@ class DataObjectAsPage extends DataObject {
 		if($this->ID)
 		{
 			$color = '#E88F31';
-			$links = '<a target="_blank" href="' . $this->Link('?stage=Stage') . '">View Draft</a>';
+			$links = '<a target="_blank" href="' . $this->Link('?stage=Stage') . '">Draft</a>';
 			$status = $this->Status;
 			
 			if($this->Status == 'Published')
 			{
 				$color = '#000';
-				$links .= ' | <a target="_blank" href="' . $this->Link('?stage=Live') . '">View Published</a>';
+				$links .= ' | <a target="_blank" href="' . $this->Link('?stage=Live') . '">Published</a>';
 				
 				if($this->hasChangesOnStage())
 				{
@@ -143,8 +143,13 @@ class DataObjectAsPage extends DataObject {
 			}
 
 			$fields->insertFirst(new LiteralField('', 
-				'<h3 style=" Padding: 5px; border: 1px solid #ccc;background:#fff;margin-bottom: 10px;">
-				<strong style="font-size: 16px;color: '.$color.';">'. $status . '</strong> - ' . $links .'</h3>'
+				'<div class="doapToolbar">
+					<h3 class="doapTitle" style="background: '.$color.';">'. $status . '</h3>
+					<p class="doapViewLinks">
+						View:' . $links . '
+					</p>
+				</div>
+				'
 			));
 		}
 
