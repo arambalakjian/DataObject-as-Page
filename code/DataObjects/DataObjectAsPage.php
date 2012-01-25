@@ -345,12 +345,12 @@ class DataObjectAsPage extends DataObject {
 	public function LinkingMode()
     {
         //Check that we have a controller to work with and that it is a listing page
-        if(Controller::CurrentPage() && Controller::CurrentPage()->ClassName == $this->stat('listing_page_class'))
+        if(($controller = Controller::CurrentPage()) && (Controller::CurrentPage()->ClassName == $this->stat('listing_page_class')))
         {
             //check that the action is 'show' and that we have an item to work with
-            if(Controller::CurrentPage()->getAction() == 'show' && $Item = Controller::CurrentPage()->getCurrentItem())
+            if($controller->getAction() == 'show' && $item = $controller->getCurrentItem())
             {
-                return ($Item->ID == $this->ID) ? 'current' : 'link';
+                return ($item->ID == $this->ID) ? 'current' : 'link';
             }
         }
     }
