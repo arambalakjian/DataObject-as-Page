@@ -82,43 +82,8 @@ class DataObjectAsPageHolder extends Page
 	*/
 	public function FetchItems($ItemClass, $Filter = '', $Sort = Null, $Join = Null, $Limit = null)
 	{
-		//Set our status filter if in live mode
-		if(Versioned::get_reading_mode() == 'Stage.Live')
-		{
-			if($Filter) $Filter .= ' AND ';
-			
-			$Filter .= "Status = 'Published'"; 
-		}
-		
 		return DataObject::get($ItemClass, $Filter, $Sort, $Join, $Limit);
 	}
-	
-	public function ItemCount($ItemClass = Null)
-	{
-		if($ItemClass && $Items = $this->FetchItems($ItemClass))
-		{
-			return $Items->TotalItems();
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	
-	/*
-	 * If ItemsAsChildren is enabled it returns the DataObjects as Children of this page
-	 */
-    public function Children()
-    {
-    	if($this->ItemsAsChildren)
-		{
-			return $this->FetchItems('DataObjectAsPage');	
-		}
-		else
-		{
-			return parent::Children();
-		}
-    }
 	
 	/*
 	 * This is to prevent the DataObjects from being deleted when we unpublish the page if they are set as children
@@ -138,7 +103,22 @@ class DataObjectAsPageHolder extends Page
 		{
 			 parent::onBeforeDelete();
 		}
-    }   
+    } 
+	
+	/*
+	 * If ItemsAsChildren is enabled it returns the DataObjects as Children of this page
+	 */
+    public function Children()
+    {
+    	if($this->ItemsAsChildren && (Controller::curr() instanceof DataObjectAsPageHolder_Controller))
+		{
+			return Controller::curr()->Items();	
+		}
+		else
+		{
+			return parent::Children();
+		}
+    }	  
 }
 
 class DataObjectAsPageHolder_Controller extends Page_Controller 
@@ -150,7 +130,7 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 	public static $allowed_actions = array(
 		'show'
 	);
-
+	
 	/*
 	 * Returns the items to list on this page pagintated or Limited
 	 */

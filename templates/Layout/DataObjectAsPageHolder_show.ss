@@ -11,7 +11,7 @@
 			
 			<% control Item %>
 				<h2>$Title</h2>
-				
+				$LinkingMode
 				$Content
 			<% end_control %>
 	
