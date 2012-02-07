@@ -100,18 +100,19 @@ class DataObjectAsPage extends DataObject {
 		$PublishAction = FormAction::create('doPublish', 'Save & Publish');
 		$PublishAction->describe("Publish this item");	      
 		$Actions->insertFirst($PublishAction);
-		  
-		 if($this->Status != 'Draft')
-		 {
-		    //Create the Unpublish action
-		    $unPublishAction = FormAction::create('doUnpublish', 'Unpublish');
-		    $unPublishAction->describe("Unpublish this item");
-			$Actions->insertFirst($unPublishAction);		 	
-		 }
-		 
+		
 		//Create the Duplicate action
 		$DuplicateAction = FormAction::create('duplicate', 'Duplicate Object');
 		$DuplicateAction->describe("Duplicate this item");
+		  
+		if($this->Status != 'Draft')
+		{
+			//Create the Unpublish action
+			$unPublishAction = FormAction::create('doUnpublish', 'Unpublish');
+			$unPublishAction->describe("Unpublish this item");
+			$unPublishAction->addExtraClass('delete');
+			$Actions->insertFirst($unPublishAction);		 	
+		}
          
         //add it to the existing actions
         $Actions->insertFirst($DuplicateAction); 		
