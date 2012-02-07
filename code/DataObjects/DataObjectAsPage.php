@@ -104,6 +104,8 @@ class DataObjectAsPage extends DataObject {
 		//Create the Duplicate action
 		$DuplicateAction = FormAction::create('duplicate', 'Duplicate Object');
 		$DuplicateAction->describe("Duplicate this item");
+		//add it to the existing actions
+        	$Actions->insertFirst($DuplicateAction);
 		  
 		if($this->Status != 'Draft')
 		{
@@ -114,8 +116,7 @@ class DataObjectAsPage extends DataObject {
 			$Actions->insertFirst($unPublishAction);		 	
 		}
          
-        //add it to the existing actions
-        $Actions->insertFirst($DuplicateAction); 		
+        		
          
 		return $Actions;
 	} 
