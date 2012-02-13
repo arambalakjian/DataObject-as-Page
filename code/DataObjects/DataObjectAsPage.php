@@ -96,18 +96,24 @@ class DataObjectAsPage extends DataObject {
 		$Actions = parent::getCMSActions();
 		
 		
-		//Create the Save & Publish action
-		$PublishAction = FormAction::create('doPublish', 'Save & Publish');
-		$PublishAction->describe("Publish this item");	      
-		$Actions->insertFirst($PublishAction);
-		
-		//Create the Duplicate action
-		$DuplicateAction = FormAction::create('duplicate', 'Duplicate Object');
-		$DuplicateAction->describe("Duplicate this item");
-		//add it to the existing actions
-        	$Actions->insertFirst($DuplicateAction);
+		if ($this->canPublish())
+		{
+			//Create the Save & Publish action
+			$PublishAction = FormAction::create('doPublish', 'Save & Publish');
+			$PublishAction->describe("Publish this item");	      
+			$Actions->insertFirst($PublishAction);
+		}
+
+		if ($this->canCreate())
+		{	
+			//Create the Duplicate action
+			$DuplicateAction = FormAction::create('duplicate', 'Duplicate Object');
+			$DuplicateAction->describe("Duplicate this item");
+			//add it to the existing actions
+			$Actions->insertFirst($DuplicateAction);
+		}
 		  
-		if($this->Status != 'Draft')
+		if($this->Status != 'Draft' && $this->canUnPublish())
 		{
 			//Create the Unpublish action
 			$unPublishAction = FormAction::create('doUnpublish', 'Unpublish');
