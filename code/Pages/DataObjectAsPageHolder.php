@@ -186,17 +186,24 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 	 */
 	function show()
 	{
-		if(($item = $this->getCurrentItem()) && $this->getCurrentItem()->canView())
-		{	
-			$data = array(
-				'Item' => $item,
-				'Breadcrumbs' => $this->ItemBreadcrumbs($item),
-				'MetaTitle' => $item->MetaTitle,
-				'MetaTags' => $this->ItemMetaTags($item),
-				'BackLink' => base64_decode($this->request->getVar('backlink'))
-			);
-			
-			return $this->Customise(new ArrayData($data));					
+		if(($item = $this->getCurrentItem()))
+		{
+			if ($this->getCurrentItem()->canView())
+			{
+				$data = array(
+					'Item' => $item,
+					'Breadcrumbs' => $this->ItemBreadcrumbs($item),
+					'MetaTitle' => $item->MetaTitle,
+					'MetaTags' => $this->ItemMetaTags($item),
+					'BackLink' => base64_decode($this->request->getVar('backlink'))
+				);
+
+				return $this->customise(new ArrayData($data));
+			}
+			else
+			{
+				return Security::permissionFailure($this);
+			}
 		}
 		else
 		{
