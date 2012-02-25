@@ -169,12 +169,17 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 	 */
 	public function getCurrentItem($itemID = null)
 	{
+		$params = $this->request->allParams();
+		
 		if($itemID)
 		{
 			return DataObject::get_by_id($this->stat('item_class'), $itemID);
 		}
-		elseif($URL = $this->URLParams['ID'])
+		elseif(isset($params['ID']))
 		{
+			//Sanitize
+			$URL = Convert::raw2sql($params['ID']);
+			
 			return DataObject::get_one($this->stat('item_class'), "URLSegment = '" . $URL . "'");
 		}		
 	}

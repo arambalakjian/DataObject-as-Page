@@ -7,10 +7,6 @@ class DataObjectAsPageTableField extends TableListField {
 	}
 }
 
-/**
- * @package forms
- * @subpackage fields-relational
- */
 class DataObjectAsPageTableField_ItemRequest extends TableListField_ItemRequest {
 
 	function delete($request) {
