@@ -103,6 +103,10 @@ class DataObjectAsPage extends DataObject {
 			$PublishAction->describe("Publish this item");	      
 			$Actions->insertFirst($PublishAction);
 		}
+		
+		$SaveAction = FormAction::create('doSaveToDraft', 'Save');
+		$SaveAction->describe("Save a draft of this item");
+		$Actions->insertFirst($SaveAction);
 
 		if ($this->canCreate())
 		{	
@@ -122,7 +126,13 @@ class DataObjectAsPage extends DataObject {
 			$Actions->insertFirst($unPublishAction);		 	
 		}
          
-        		
+        	$DeleteAction = FormAction::create('doDeleteItem', 'Delete this item');
+        	$DeleteAction->describe("Delete this item");
+		$Actions->insertFirst($DeleteAction);
+		
+		$ListViewAction = FormAction::create('listview', 'Go back to list');
+        	$ListViewAction->describe("Return to the list");
+		$Actions->insertFirst($ListViewAction);	
          
 		return $Actions;
 	} 
