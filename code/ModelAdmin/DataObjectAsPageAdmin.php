@@ -33,7 +33,24 @@ class DataObjectAsPageAdmin_RecordController extends ModelAdmin_RecordController
         } else {
             Director::redirectBack();
         }
-	}	
+	}
+	
+	public function doSaveToDraft($data, $form, $request) {
+		$form->saveInto($this->currentRecord);
+		
+		try {
+			$this->currentRecord->write();
+		} catch(ValidationException $e) {
+			$form->sessionMessage($e->getResult()->message(), 'bad');
+		}
+			
+		// Behaviour switched on ajax.
+		if(Director::is_ajax()) {
+			return $this->edit($request);
+		} else {
+			Director::redirectBack();
+		}
+	}
 	
 	public function doUnpublish($data, $form, $request)
 	{
@@ -51,7 +68,7 @@ class DataObjectAsPageAdmin_RecordController extends ModelAdmin_RecordController
         }
 	}	
 	
-	public function doDelete($data, $form, $request)
+	public function doDeleteItem($data, $form, $request)
 	{
 		$record = $this->currentRecord;
 		
@@ -61,7 +78,7 @@ class DataObjectAsPageAdmin_RecordController extends ModelAdmin_RecordController
 		$record->doDelete();
 		
         if(Director::is_ajax()) {
-           	$this->edit($request);
+            $this->edit($request);
         } else {
             Director::redirectBack();
         }
@@ -80,5 +97,16 @@ class DataObjectAsPageAdmin_RecordController extends ModelAdmin_RecordController
         } else {
             Director::redirectBack();
         }
-    }	
+    	}
+    	
+    	public function EditForm() {
+		$form = parent::EditForm();
+		$fields = $form->Actions();
+		$fields->removeByName('action_doSave');
+		$fields->removeByName('action_doDelete');
+		$fields->removeByName('action_goForward');
+		$fields->removeByName('action_goBack');
+		$form->setActions ($fields);	
+		return $form;
+	}	
 }
