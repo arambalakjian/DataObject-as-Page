@@ -39,7 +39,7 @@ class DataObjectAsPageAdmin_RecordController extends ModelAdmin_RecordController
 	{
 		$record = $this->currentRecord;
 		
-		if($record && !$record->canDeleteFromLive())
+		if($record && !$record->canUnPublish())
 		        return Security::permissionFailure($this);
 
 		$record->doUnpublish();
