@@ -61,11 +61,11 @@ class DataObjectAsPageAdmin_RecordController extends ModelAdmin_RecordController
 
 		$record->doUnpublish();
 		
-        if(Director::is_ajax()) {
-           	return $this->edit($request);
-        } else {
-            Director::redirectBack();
-        }
+	        if(Director::is_ajax()) {
+	           	return $this->edit($request);
+	        } else {
+	            Director::redirectBack();
+	        }
 	}	
 	
 	public function doDeleteItem($data, $form, $request)
@@ -75,13 +75,15 @@ class DataObjectAsPageAdmin_RecordController extends ModelAdmin_RecordController
 		if($record && !$record->canDelete())
         	return Security::permissionFailure();
 		
+		//This extra line is needed to remove the records with this ID from the versions table.
+		DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = '$record->ID'");
 		$record->doDelete();
-		
-        if(Director::is_ajax()) {
-            $this->edit($request);
-        } else {
-            Director::redirectBack();
-        }
+			
+	        if(Director::is_ajax()) {
+	            $this->edit($request);
+	        } else {
+	            Director::redirectBack();
+	        }
 	}	
 	
 	public function duplicate($data, $form, $request) { 
