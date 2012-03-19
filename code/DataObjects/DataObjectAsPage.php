@@ -298,6 +298,8 @@ class DataObjectAsPage extends DataObject {
 		$oldMode = Versioned::get_reading_mode();
 		Versioned::reading_stage('Draft');
 
+		//delete all versioned objects with this ID
+		$result = DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = '$this->ID'");
 		$result = $this->delete();
 				
 		Versioned::set_reading_mode($oldMode);
@@ -417,6 +419,22 @@ class DataObjectAsPage extends DataObject {
 	    }
 		
 		$this->URLSegment = $URLSegment;
+	}
+	
+	function onAfterWrite() {
+   		parent::onAfterWrite();
+		// Clear out obselete versions of records since there is no way to role back to previous versions yet.
+		if(DB::query("SELECT \"ID\" FROM \"DataObjectAsPage\" WHERE \"ID\" = $this->ID")->value()) {
+			
+			$LiveVersionID = DB::query("SELECT \"Version\" FROM \"DataObjectAsPage_Live\" WHERE \"ID\" = $this->ID")->value();
+			$DraftVersionID = DB::query("SELECT \"Version\" FROM \"DataObjectAsPage\" WHERE \"ID\" = $this->ID")->value();
+			
+			if($LiveVersionID){
+				DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = $this->ID AND Version != '" . $DraftVersionID . "' AND Version != '" . $LiveVersionID . "'");
+			} else {
+				DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = $this->ID AND Version != '" . $DraftVersionID . "'");
+			}
+		}
 	}
 	
 	//Test whether the URLSegment exists already on another Item
