@@ -145,13 +145,13 @@ class DataObjectAsPage extends DataObject {
 		if($this->ID)
 		{
 			$color = '#E88F31';
-			$links = '<a target="_blank" href="' . $this->Link('?stage=Stage') . '">Draft</a>';
+			$links = '<a target="_blank" href="' . $this->Link() . '?stage=Stage">Draft</a>';
 			$status = $this->Status;
 			
 			if($this->Status == 'Published')
 			{
 				$color = '#000';
-				$links .= ' | <a target="_blank" href="' . $this->Link('?stage=Live') . '">Published</a>';
+				$links .= ' | <a target="_blank" href="' . $this->Link() . '?stage=Live">Published</a>';
 				
 				if($this->hasChangesOnStage())
 				{

@@ -1,8 +1,8 @@
 (function($) {
 $(document).ready(function() {   
 	var doList = function() {
-		var currentModel = $('#ModelClassSelector').children('select');
-		var currentModelName = $('#SearchForm_holder .tabstrip a').text();
+		var currentModel = $('#SearchForm_holder .tabstrip a').attr('href');
+		var currentModelName = currentModel.substr(currentModel.indexOf("_") + 1);
 		var strFormname = "#Form_SearchForm_" + currentModelName;
 		$(strFormname).submit();
 		return false;
