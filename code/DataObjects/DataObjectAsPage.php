@@ -3,12 +3,11 @@
  * Base class for DataObjects that behave like pages
  * 
  */
-class DataObjectAsPage extends DataObject {
+class DataObjectAsPage extends DataObject{
 	
 	static $listing_page_class = 'DataObjectAsPageHolder';
 	
 	static $db = array (
-		"Status" => "Varchar",
 		'URLSegment' => 'Varchar(100)',
 		'Title' => 'Varchar(255)',
 		'MetaTitle' => 'Varchar(255)',
@@ -18,42 +17,14 @@ class DataObjectAsPage extends DataObject {
 	
 	static $defaults = array(
 		'Title'=>'New Item',
-		'URLSegment' => 'new-item',
-		'Status' => 'Draft'
+		'URLSegment' => 'new-item'
 	);
 	
 	static $summary_fields = array(
 		'Title' => 'Title',
-		'URLSegment' => 'URLSegment',
-		'Status' => 'Status'
-	);
-
-	static $allowed_actions = array(
-		'doPublish',
-		'doUnpublish'
-	);
-
-	static $extensions = array(
-		"Versioned('Stage', 'Live')"
-	);
-
-	//Better Search (Requires Better Search Module)
-	static $indexes = array( 
-		"SearchFields" => "fulltext (Title, MetaDescription, Content)", 
-		"TitleSearchFields" => "fulltext (Title)",
-        "URLSegment" => true	
-	);
-
-	static $frontend_searchable_fields = array(
-		'Title',
-		'MetaDescription',
-		'Content'
+		'URLSegment' => 'URLSegment'
 	);
 	
-	static $search_heading = "Title"; 
-	
-	static $search_content = "Content";
-
 	public static $default_sort = 'Created DESC';
 
 	//Return the Title for use in Menu2
@@ -67,9 +38,9 @@ class DataObjectAsPage extends DataObject {
 	{
 		//If this is draft check for permissions to view draft content
 		//getSearchResultItem is needed to ensure unpublished items don't show up in search results		
-		if($this->Status == 'Draft')
+		if($this->isVersioned && Versioned::current_stage() == 'Stage' && $this->Status == 'Draft')
 		{
-			return (Permission::check('VIEW_DRAFT_CONTENT') && Versioned::current_stage() == 'Stage');
+			return (Permission::check('VIEW_DRAFT_CONTENT'));
 		}		
 		elseif(Controller::curr()->hasMethod("canView"))
 		{
@@ -85,128 +56,273 @@ class DataObjectAsPage extends DataObject {
 	}
 
 	//Chek if current user can view
-	public function canUnPublish($member = null)
+	public function canDeleteFromLive($member = null)
 	{
 		return true;
 	}
-	
+
     //Create duplicate button
 	public function getCMSActions()
 	{
-		$Actions = parent::getCMSActions();
-		
-		
-		if ($this->canPublish())
-		{
-			//Create the Save & Publish action
-			$PublishAction = FormAction::create('doPublish', 'Save & Publish');
-			$PublishAction->describe("Publish this item");	      
-			$Actions->insertFirst($PublishAction);
-		}
-		
-		$SaveAction = FormAction::create('doSaveToDraft', 'Save');
-		$SaveAction->describe("Save a draft of this item");
-		$Actions->insertFirst($SaveAction);
+		$actions = parent::getCMSActions();
 
-		if ($this->canCreate())
-		{	
-			//Create the Duplicate action
-			$DuplicateAction = FormAction::create('duplicate', 'Duplicate Object');
-			$DuplicateAction->describe("Duplicate this item");
-			//add it to the existing actions
-			$Actions->insertFirst($DuplicateAction);
-		}
-		  
-		if($this->Status != 'Draft' && $this->canUnPublish())
+		$minorActions = CompositeField::create()->setTag('fieldset')->addExtraClass('ss-ui-buttonset');
+		$actions = new FieldList($minorActions);		
+					
+		if($this->ID)
 		{
-			//Create the Unpublish action
-			$unPublishAction = FormAction::create('doUnpublish', 'Unpublish');
-			$unPublishAction->describe("Unpublish this item");
-			$unPublishAction->addExtraClass('delete');
-			$Actions->insertFirst($unPublishAction);		 	
+			if($this->isVersioned)
+			{
+				if($this->isPublished() && $this->canPublish() && $this->canDeleteFromLive()) {
+					// "unpublish"
+					$minorActions->push(
+						FormAction::create('unpublish', _t('SiteTree.BUTTONUNPUBLISH', 'Unpublish'), 'delete')
+							->setDescription(_t('SiteTree.BUTTONUNPUBLISHDESC', 'Remove this page from the published site'))
+							->addExtraClass('ss-ui-action-destructive')->setAttribute('data-icon', 'unpublish')
+					);
+				}		
+	
+				if($this->canEdit()) {
+					
+					if($this->canDelete()) {
+						// "delete"
+						$minorActions->push(
+							FormAction::create('delete','Delete')->addExtraClass('delete ss-ui-action-destructive')
+								->setAttribute('data-icon', 'decline')
+						);
+					}
+			
+					if($this->hasChangesOnStage()) {
+						if($this->isPublished() && $this->canEdit())	{
+							// "rollback"
+							$minorActions->push(
+								FormAction::create('rollback', _t('SiteTree.BUTTONCANCELDRAFT', 'Cancel draft changes'), 'delete')
+									->setDescription(_t('SiteTree.BUTTONCANCELDRAFTDESC', 'Delete your draft and revert to the currently published page'))
+							);
+						}
+					}
+			
+					if ($this->canCreate())
+					{	
+						//Create the Duplicate action
+						$minorActions->push( FormAction::create('duplicate', 'Duplicate')
+							->setDescription("Duplicate this item")
+						);
+					}			
+					// "save"
+					$minorActions->push(
+						FormAction::create('doSave',_t('CMSMain.SAVEDRAFT','Save Draft'))->setAttribute('data-icon', 'addpage')
+					);
+				}
+		
+				if($this->canPublish()) {
+					// "publish"
+					$actions->push(
+						FormAction::create('publish', _t('SiteTree.BUTTONSAVEPUBLISH', 'Save & Publish'))
+							->addExtraClass('ss-ui-action-constructive')->setAttribute('data-icon', 'accept')
+					);
+				}							
+			}
+			else 
+			{
+				if($this->canDelete()) {
+					// "delete"
+					$minorActions->push(
+						FormAction::create('delete','Delete')->addExtraClass('delete ss-ui-action-destructive')
+							->setAttribute('data-icon', 'decline')
+					);
+				}	
+			
+				if ($this->canCreate())
+				{	
+					//Create the Duplicate action
+					$minorActions->push( FormAction::create('duplicate', 'Duplicate')
+						->setDescription("Duplicate this item")
+					);
+				}				
+				
+				// "save"
+				$actions->push(
+					FormAction::create('doSave',_t('CMSMain.SAVE','Save'))->addExtraClass('ss-ui-action-constructive')->setAttribute('data-icon', 'addpage')
+				);						
+			}
+			
 		}
-         
-        	$DeleteAction = FormAction::create('doDeleteItem', 'Delete this item');
-        	$DeleteAction->describe("Delete this item");
-		$Actions->insertFirst($DeleteAction);
+		else 
+		{
+			//Change the Save label to 'Create'
+			$actions->push(FormAction::create('doSave', _t('GridFieldDetailForm.Create', 'Create'))
+				->setUseButtonTag(true)
+				->addExtraClass('ss-ui-action-constructive')
+				->setAttribute('data-icon', 'add'));
+		}
 		
-		$ListViewAction = FormAction::create('listview', 'Go back to list');
-        	$ListViewAction->describe("Return to the list");
-		$Actions->insertFirst($ListViewAction);	
-         
-		return $Actions;
+		return $actions;
 	} 
-		
+
+
 	public function getCMSFields() 
 	{
 		$fields = parent::getCMSFields();
-
+		
 		//Add the status/view link
 		if($this->ID)
 		{
-			$color = '#E88F31';
-			$links = '<a target="_blank" href="' . $this->Link() . '?stage=Stage">Draft</a>';
-			$status = $this->Status;
-			
-			if($this->Status == 'Published')
+			if($this->isVersioned)
 			{
-				$color = '#000';
-				$links .= ' | <a target="_blank" href="' . $this->Link() . '?stage=Live">Published</a>';
+				$status = $this->Status;	
 				
-				if($this->hasChangesOnStage())
+				$color = '#E88F31';
+				$links = sprintf(
+					"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?Stage=stage', 'Draft'
+				);
+			
+				if($this->Status == 'Published')
 				{
-					$status .= ' (changed)';
-					$color = '#428620';
+					$color = '#000';
+					$links .= sprintf(
+						"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?Stage=live', 'Published'
+					);;
+					
+					if($this->hasChangesOnStage())
+					{
+						$status .= ' (changed)';
+						$color = '#428620';
+					}
 				}
+				
+				$statusPill = '<h3 class="doapTitle" style="background: '.$color.';">'. $status . '</h3>';
+			}
+			else
+			{
+				$links = sprintf(
+					"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?Stage=stage', 'View'
+				);	
+				
+				$statusPill = "";
 			}
 
-			$fields->insertFirst(new LiteralField('', 
+			$fields->addFieldToTab('Root.Main', new LiteralField('', 
 				'<div class="doapToolbar">
-					<h3 class="doapTitle" style="background: '.$color.';">'. $status . '</h3>
+					' . $statusPill . '
 					<p class="doapViewLinks">
-						Page View:' . $links . '
+						' . $links . '
 					</p>
-				</div>
-				'
+				</div>'
 			));
 		}
 
-		$fields->addFieldToTab('Root.Main', new TextField('Title'));	
-
-		$fields->addFieldToTab('Root.Main', new HTMLEditorField('Content'));	
-	
 		//Remove Scafolded fields
 		$fields->removeFieldFromTab('Root.Main', 'URLSegment');
 		$fields->removeFieldFromTab('Root.Main', 'Status');
 		$fields->removeFieldFromTab('Root.Main', 'Version');
+		$fields->removeFieldFromTab('Root.Main', 'MetaTitle');
+		$fields->removeFieldFromTab('Root.Main', 'MetaDescription');
 		$fields->removeByName('Versions');
 		
+		$fields->addFieldToTab('Root.Main', new TextField('Title'));	
 
-		//URLSegment
-		$fields->addFieldToTab('Root.Metadata', 
-			new FieldGroup("URL",
-				new LabelField('BaseUrlLabel', Director::absoluteBaseURL() . 'listing-page/show/'),
-				new UniqueRestrictedTextField("URLSegment",
-					"URL Segment",
-					"Event",
-					"Another event is using that URL. URL must be unique for each product",
-					"[^a-z0-9-]+",
-					"-",
-					"URLs can only be made up of letters, digits and hyphens.",
-					"",
-					"",
-					"",
-					50
-				),
-				new LabelField('TrailingSlashLabel',"/")
+		if($this->ID)
+		{
+			$urlsegment = new SiteTreeURLSegmentField("URLSegment", $this->fieldLabel('URLSegment'));
+			$urlsegment->setURLPrefix(Director::absoluteBaseURL() . 'listing-page/show/');
+			
+			$helpText = _t('SiteTreeURLSegmentField.HelpChars', ' Special characters are automatically converted or removed.');
+			$urlsegment->setHelpText($helpText);
+			$fields->addFieldToTab('Root.Main', $urlsegment);
+		}
+
+		$fields->addFieldToTab('Root.Main', new HTMLEditorField('Content'));	
+
+		$fields->addFieldToTab('Root.Main',new ToggleCompositeField('Metadata', 'Metadata',
+			array(
+				new TextField("MetaTitle", $this->fieldLabel('MetaTitle')),
+				new TextareaField("MetaDescription", $this->fieldLabel('MetaDescription'))
 			)
-		);
-
-		//MetaData fields
-		$fields->addFieldToTab('Root.Metadata', new TextField('MetaTitle', 'Meta Title'));
-		$fields->addFieldToTab('Root.Metadata', new TextField('MetaDescription', 'Meta Description'));	
-				
+		));
+		
+		//$fields->push(new HiddenField('PreviewURL', 'Preview URL', $this->StageLink()));
+		//$fields->push(new TextField('CMSEditURL', 'Preview URL', $this->CMSEditLink()));
+		
 		return $fields;
+	}
+
+	public static function enable_versioning()
+	{
+	  	DataObject::add_extension('DataObjectAsPage','VersionedDataObjectAsPage');
+		DataObject::add_extension('DataObjectAsPage',"Versioned('Stage', 'Live')");
+	}
+	
+	function getisVersioned()
+	{
+		return $this->hasExtension('Versioned');
+	}
+
+	/*
+	 * Produce the correct breadcrumb trail for use on the DataObject Item Page
+	*/
+	public function Breadcrumbs($maxDepth = 20, $unlinked = false, $stopAtPageType = false, $showHidden = false) 
+	{
+		$page = Controller::curr();
+		$pages = array();
+		
+		while(
+			$page  
+ 			&& (!$maxDepth || count($pages) < $maxDepth) 
+ 			&& (!$stopAtPageType || $page->ClassName != $stopAtPageType)
+ 		) {
+			if($showHidden || $page->ShowInMenus || ($page->ID == $this->ID)) { 
+				$pages[] = $page;
+			}
+			
+			$page = $page->Parent;
+		}
+		
+		$pages[] = $this;
+		
+		$template = new SSViewer('BreadcrumbsTemplate');
+		
+		return $template->process($this->customise(new ArrayData(array(
+			'Pages' => new ArrayList($pages)
+		))));
+	}	
+		
+	/*
+	 * Generate custom metatags to display on the DataObject Item page
+	 */ 
+	public function MetaTags($includeTitle = true) 
+	{
+		$tags = "";
+		if($includeTitle === true || $includeTitle == 'true') {
+			$tags .= "<title>" . Convert::raw2xml(($this->MetaTitle)
+				? $this->MetaTitle
+				: $this->Title) . "</title>\n";
+		}
+
+		$tags .= "<meta name=\"generator\" content=\"SilverStripe - http://silverstripe.org\" />\n";
+
+		$charset = ContentNegotiator::get_encoding();
+		$tags .= "<meta http-equiv=\"Content-type\" content=\"text/html; charset=$charset\" />\n";
+
+		if($this->MetaDescription) {
+			$tags .= "<meta name=\"description\" content=\"" . Convert::raw2att($this->MetaDescription) . "\" />\n";
+		}
+
+		$this->extend('MetaTags', $tags);
+
+		return $tags;
+	}
+
+	/**
+	 * Check if this page has been published.
+	 *
+	 * @return boolean True if this page has been published.
+	 */
+	function isPublished() 
+	{
+		return (DB::query("SELECT \"ID\" FROM \"DataObjectAsPage_Live\" WHERE \"ID\" = $this->ID")->value())
+			? true
+			: false;
 	}
 
 	/**
@@ -215,7 +331,7 @@ class DataObjectAsPage extends DataObject {
 	 *
 	 * @return SiteTree The duplicated object.
 	 */
-	 public function duplicate($doWrite = true) 
+	 public function doDuplicate($doWrite = true) 
 	 {
 		$item = parent::duplicate(false);
 		$this->extend('onBeforeDuplicate', $item);
@@ -239,7 +355,8 @@ class DataObjectAsPage extends DataObject {
 	 * @uses SiteTreeDecorator->onBeforePublish()
 	 * @uses SiteTreeDecorator->onAfterPublish()
 	 */
-	function doPublish() {
+	function doPublish() 
+	{
 		if (!$this->canPublish()) return false;
 		
 		$original = Versioned::get_one_by_stage("DataObjectAsPage", "Live", "\"DataObjectAsPage\".\"ID\" = $this->ID");
@@ -247,6 +364,7 @@ class DataObjectAsPage extends DataObject {
 
 		// Handle activities undertaken by decorators
 		$this->invokeWithExtensions('onBeforePublish', $original);
+		
 		$this->Status = "Published";
 		//$this->PublishedByID = Member::currentUser()->ID;
 		$this->write();
@@ -265,7 +383,7 @@ class DataObjectAsPage extends DataObject {
 	function doUnpublish() 
 	{
 		if(!$this->ID) return false;
-		if (!$this->canUnPublish()) return false;
+		if (!$this->canDeleteFromLive()) return false;
 		
 		$this->extend('onBeforeUnpublish');
 		
@@ -291,8 +409,8 @@ class DataObjectAsPage extends DataObject {
 		return true;
 	}
 
-	function doDelete() {
-		
+	function doDelete() 
+	{
 		$this->doUnpublish();
 		
 		$oldMode = Versioned::get_reading_mode();
@@ -306,7 +424,24 @@ class DataObjectAsPage extends DataObject {
 
 		return $result;
 	}
+	
+	
+	/**
+	 * Revert the draft changes: replace the draft content with the content on live
+	 */
+	function doRevertToLive() 
+	{
+		$this->publish("Live", "Stage", false);
 
+		// Use a clone to get the updates made by $this->publish
+		$clone = DataObject::get_by_id("DataObjectAsPage", $this->ID);
+		$clone->writeWithoutVersion();
+		
+		$this->extend('onAfterRevertToLive');
+		
+		return $clone;
+	}
+	
 	/**
 	 * Check whether this DO has changes which are not published
 	 */
@@ -317,48 +452,50 @@ class DataObjectAsPage extends DataObject {
 		
 		return ($latestPublishedVersion < $latestVersion);
 	}
-
+	
 	/*
 	 * Get the listing page to view this Event on (used in Link functions below)
 	 */
 	function getListingPage(){
 		
+		$listingClass = $this->stat('listing_class');
+		
 		if(Controller::curr()->ClassName == $this->stat('listing_class'))
 		{
-			$ListingPage = Controller::curr();
+			$listingPage = Controller::curr();
 		}
 		else
 		{
-			//Needed for search results to work ($this->EventTypeID returns nothing)
-			$Item = DataObject::get_by_id($this->ClassName, $this->ID);
-			
-			$ListingPage = DataObject::get_one($this->stat('listing_class'));
+			$listingPage = $listingClass::get()->First();
 		}
 		
-		return $ListingPage;		
+		return $listingPage;		
 	}
 	
 	/*
 	 * Generate the link to this DataObject Item page
 	 */
-	function Link($ExtraURLVar = null)
+	function Link($extraURLVar = null)
 	{
 		//Hack for search results
-		if($Item =  DataObject::get_by_id(get_class($this), $this->ID))
+		if($item =  DataObject::get_by_id(get_class($this), $this->ID))
 		{
 			//Build link
-			if($ListingPage = $Item->getListingPage())
+			if($listingPage = $item->getListingPage())
 			{
-				return $ListingPage->Link('show/' . $Item->URLSegment . '/' . $ExtraURLVar);		
+				return $listingPage->Link('show/' . $item->URLSegment . '/' . $extraURLVar);		
 			}			
 		}
 	}
 	
 	function absoluteLink($appendVal = null)
 	{
-		return $this->getListingPage()->absoluteLink('show/' . $this->URLSegment . $appendVal);
+		if($listingPage = $this->getListingPage())
+		{
+			return $listingPage->absoluteLink('show/' . $this->URLSegment . $appendVal);			
+		}
 	}
-
+	
 	/*
 	 * Return the correct linking mode, for use in menus
 	 */
@@ -377,73 +514,103 @@ class DataObjectAsPage extends DataObject {
 
 	/*
 	 * Set URLSegment to be unique on write
-	 */
+	*/
 	public function onBeforeWrite()
 	{
 	    parent::onBeforeWrite();
-	
+		
 		//Set MetaData
 		if(!$this->MetaTitle)
 		{
 			$this->MetaTitle = $this->Title;
 		}
 		
+
 	    // If there is no URLSegment set, generate one from Title
 	    if((!$this->URLSegment || $this->URLSegment == 'new-item') && $this->Title != 'New Item') 
 	    {
-	        $this->URLSegment = SiteTree::generateURLSegment($this->Title);
+	        $this->URLSegment = $this->generateURLSegment($this->Title);
 	    } 
 	    else if($this->isChanged('URLSegment')) 
 	    {
 	        // Make sure the URLSegment is valid for use in a URL
 	        $segment = preg_replace('/[^A-Za-z0-9]+/','-',$this->URLSegment);
 	        $segment = preg_replace('/-+/','-',$segment);
-	          
+
 	        // If after sanitising there is no URLSegment, give it a reasonable default
 	        if(!$segment) {
 	            $segment = "item-$this->ID";
-	            }
-	            $this->URLSegment = $segment;
 	        }
-	  
-	        // Ensure that this object has a non-conflicting URLSegment value.
+	        $this->URLSegment = $segment;
+	    }
+
+	    // Ensure that this object has a non-conflicting URLSegment value.
 	    $count = 2;
-	
+
 		$URLSegment = $this->URLSegment;
 		$ID = $this->ID;
-	
+
 	    while($this->LookForExistingURLSegment($URLSegment, $ID)) 
 	    {     	
 	        $URLSegment = preg_replace('/-[0-9]+$/', null, $URLSegment) . '-' . $count;
 	        $count++;
 	    }
-		
+
 		$this->URLSegment = $URLSegment;
+
 	}
-	
+	 
 	function onAfterWrite() {
    		parent::onAfterWrite();
-		// Clear out obselete versions of records since there is no way to role back to previous versions yet.
-		if(DB::query("SELECT \"ID\" FROM \"DataObjectAsPage\" WHERE \"ID\" = $this->ID")->value()) {
-			
-			$LiveVersionID = DB::query("SELECT \"Version\" FROM \"DataObjectAsPage_Live\" WHERE \"ID\" = $this->ID")->value();
-			$DraftVersionID = DB::query("SELECT \"Version\" FROM \"DataObjectAsPage\" WHERE \"ID\" = $this->ID")->value();
-			
-			if($LiveVersionID){
-				DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = $this->ID AND Version != '" . $DraftVersionID . "' AND Version != '" . $LiveVersionID . "'");
-			} else {
-				DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = $this->ID AND Version != '" . $DraftVersionID . "'");
-			}
-		}
-	}
+		
+		if($this->ID && $this->isVersioned)
+		{
+			// Clear out obselete versions of records since there is no way to role back to previous versions yet.
+			if(DB::query("SELECT \"ID\" FROM \"DataObjectAsPage\" WHERE \"ID\" = $this->ID")->value()) {
 	
+				$LiveVersionID = DB::query("SELECT \"Version\" FROM \"DataObjectAsPage_Live\" WHERE \"ID\" = $this->ID")->value();
+				$DraftVersionID = DB::query("SELECT \"Version\" FROM \"DataObjectAsPage\" WHERE \"ID\" = $this->ID")->value();
+	
+				if($LiveVersionID){
+					DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = $this->ID AND Version != '" . $DraftVersionID . "' AND Version != '" . $LiveVersionID . "'");
+				} else {
+					DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = $this->ID AND Version != '" . $DraftVersionID . "'");
+				}
+			}			
+		}
+
+	}
+
 	//Test whether the URLSegment exists already on another Item
 	public function LookForExistingURLSegment($URLSegment, $ID)
 	{
-		$Where = "`DataObjectAsPage`.`URLSegment` = '" . $URLSegment . "' AND `DataObjectAsPage`.`ID` != $ID";
-	   	$Item = (DataObject::get_one('DataObjectAsPage', $Where));
-		
-		return $Item;    	
-	}
+		$where = "URLSegment = '" . $URLSegment . "' AND ID != $ID";
+	   	$item = DataObjectAsPage::get()->where($where)->first();
 
+		return $item;
+	}
+	
+	/**
+	 * Generate a URL segment based on the title provided.
+	 * 
+	 * If {@link Extension}s wish to alter URL segment generation, they can do so by defining
+	 * updateURLSegment(&$url, $title).  $url will be passed by reference and should be modified.
+	 * $title will contain the title that was originally used as the source of this generated URL.
+	 * This lets extensions either start from scratch, or incrementally modify the generated URL.
+	 * 
+	 * @param string $title Page title.
+	 * @return string Generated url segment
+	 */
+	function generateURLSegment($title){
+		$filter = URLSegmentFilter::create();
+		$t = $filter->filter($title);
+		
+		// Fallback to generic page name if path is empty (= no valid, convertable characters)
+		if(!$t || $t == '-' || $t == '-1') $t = "page-$this->ID";
+		
+		// Hook for extensions
+		$this->extend('updateURLSegment', $t, $title);
+		
+		return $t;
+	}
 }

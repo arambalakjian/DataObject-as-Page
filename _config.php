@@ -6,14 +6,20 @@ $folders = explode(DIRECTORY_SEPARATOR,MOD_DOAP_PATH);
 define('MOD_DOAP_DIR',rtrim(array_pop($folders),DIRECTORY_SEPARATOR));
 unset($folders);
 
+/*
+ * This fixesthe URL segment editor in model admin
+ * 
+ * Note this will prevent any URL segment editor buttons from having translations
+ */
+DataObject::add_extension('LeftAndMain', 'DataObjectAsPageLeftAndMain');
 
-Object::add_extension('SiteTree', 'SiteTreeDoapSearchable');
-Object::add_extension('DataObjectAsPage', 'DoapSearchable');
-Object::add_extension('Page_Controller', 'DoapPage');
+/*
+ * Add this line to your _config.php to enable versioning on your DataObjectAsPage classes.
+ * 
+ * Unfortunately this will to apply to all your DOAP classes as it needs to apply to the root DOAP class.
+ * 
+   DataObjectAsPage::enable_versioning();
+ * 
+ */
 
-//DataObject::add_extension('File', 'FileDoapSearchable');
 
-//Sitemap
-Director::addRules(10, array(
-	'search' => 'DoapSearch_Controller'
-));

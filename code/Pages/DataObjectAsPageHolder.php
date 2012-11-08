@@ -29,60 +29,34 @@ class DataObjectAsPageHolder extends Page
 	}
 	
 	/*
-	 * Produce the correct breadcrumb trail for use on the DataObject Item Page
-	 */ 
-	public function ItemBreadcrumbs($Item, $Other = Null) 
-	{
-		$Breadcrumbs = parent::Breadcrumbs($maxDepth = 20, $unlinked = false, $stopAtPageType = false, $showHidden = false);
-
-		$Parts = explode(self::$breadcrumbs_delimiter, $Breadcrumbs);
-
-		$NumOfParts = count($Parts);
-		
-		$Parts[$NumOfParts-1] = ("<a href=\"" . $this->Link() . "\">" . Convert::raw2xml($this->Title) . "</a>");
-		
-		if($Other)
-		{
-			$Parts[$NumOfParts] = "<a href=\"" . $Item->Link() . "\">" . Convert::raw2xml($Item->Title) . "</a>"; 
-			$Parts[] = Convert::raw2xml($Other);
-		}
-		else
-		{
-			$Parts[$NumOfParts] = Convert::raw2xml($Item->Title); 
-		}
-		
-		return implode(self::$breadcrumbs_delimiter, $Parts);
-	}	
-	
-	/*
-	 * Generate custom metatags to display on the DataObject Item page
-	 */ 
-	 public function ItemMetaTags($item = null) 
-	{
-	    $tags = parent::MetaTags(false);
-		
-		//explode to find each meta tag
-		$tagArray = explode('<meta', $tags);
-		for($i=0; $i<count($tagArray); $i++)
-		{
-			//check if tag is a description: replace if it is
-			if(strpos($tagArray[$i], 'name="description"'))
-			{
-				$tagArray[$i] = " name=\"description\" content=\"" . Convert::raw2att($item->MetaDescription) . "\" />\n";
-			}
-		}
-		//rebuild string
-	    $tags = implode('<meta', $tagArray);
-		
-		return $tags;
-	}
-		
-	/*
 	* Get Items which are to be displayed on this listing page
 	*/
-	public function FetchItems($ItemClass, $Filter = '', $Sort = Null, $Join = Null, $Limit = null)
+	public function FetchItems($itemClass, $filter = '', $sort = Null, $joins = Null, $limit = Null)
 	{
-		return DataObject::get($ItemClass, $Filter, $Sort, $Join, $Limit);
+		$results = $itemClass::get()->where($filter);
+		
+		if($joins)
+		{
+			foreach($joins as $type => $join)
+			{
+				if($results->hasMethod($type))
+				{
+					$results = $results->$type($table, $join);
+				}
+			}
+		}
+		
+		if($sort)
+		{
+			$results = $results->sort($sort);
+		}
+
+		if($limit)
+		{
+			$results = $results->limit($limit);
+		}
+						
+		return $results;
 	}
 	
 	/*
@@ -134,32 +108,24 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 	/*
 	 * Returns the items to list on this page pagintated or Limited
 	 */
-	function Items($Limit = null)
+	function Items($limit = null)
 	{
-		//Set Pagination if no limit set
-		if(!$Limit && $this->Paginate)
-		{
-			//Pagination 
-			if(!isset($_GET['start']) || !is_numeric($_GET['start']) || (int)$_GET['start'] < 1){
-				$_GET['start'] = 0;
-			}
-			
-			$Offset = (int)$_GET['start'];	
-			
-			$Limit = "{$Offset}, {$this->ItemsPerPage}" ;			
-		}
-
 		//Set custom filter
-		$Where = ($this->hasMethod('getItemsWhere')) ? $this->getItemsWhere() : Null;
-		
+		$where = ($this->hasMethod('getItemsWhere')) ? $this->getItemsWhere() : Null;
 		//Set custom sort		
-		$Sort = ($this->hasMethod('getItemsSort')) ? $this->getItemsSort() : $this->stat('item_sort');
-		
+		$sort = ($this->hasMethod('getItemsSort')) ? $this->getItemsSort() : $this->stat('item_sort');
 		//Set custom join	
-		$Join = ($this->hasMethod('getItemsJoin')) ? $this->getItemsJoin() : Null;
+		$join = ($this->hasMethod('getItemsJoin')) ? $this->getItemsJoin() : Null;
 		
 		//QUERY
-		$items = $this->FetchItems($this->Stat('item_class'), $Where, $Sort, $Join, $Limit);
+		$items = $this->FetchItems($this->Stat('item_class'), $where, $sort, $join, $limit);
+
+		//Paginate the list
+		if(!$limit && $this->Paginate)
+		{
+			$items = new PaginatedList($items, $this->request);
+			$items->setPageLength($this->ItemsPerPage);
+		}
 
 		return $items;
 	}
@@ -170,17 +136,18 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 	public function getCurrentItem($itemID = null)
 	{
 		$params = $this->request->allParams();
+		$class =  $this->stat('item_class');		
 		
 		if($itemID)
 		{
-			return DataObject::get_by_id($this->stat('item_class'), $itemID);
+			return $class::get()->byID($itemID);
 		}
 		elseif(isset($params['ID']))
 		{
 			//Sanitize
 			$URL = Convert::raw2sql($params['ID']);
 			
-			return DataObject::get_one($this->stat('item_class'), "URLSegment = '" . $URL . "'");
+			return $class::get()->filter("URLSegment", $URL)->first();
 		}		
 	}
 	
@@ -197,9 +164,8 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 			{
 				$data = array(
 					'Item' => $item,
-					'Breadcrumbs' => $this->ItemBreadcrumbs($item),
-					'MetaTitle' => $item->MetaTitle,
-					'MetaTags' => $this->ItemMetaTags($item),
+					'Breadcrumbs' => $item->Breadcrumbs(),
+					'MetaTags' => $item->MetaTags(),
 					'BackLink' => base64_decode($this->request->getVar('backlink'))
 				);
 

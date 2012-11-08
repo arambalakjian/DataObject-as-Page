@@ -1,5 +1,14 @@
 # DataObjectAsPage Module #
 
+## Maintainers
+
+ * Aram Balakjian (Nickname: willr, wrossiter)
+  <aram at aabweb dot co dot uk>
+
+## Requirements
+
+ * SilverStripe 3.0
+
 ## Overview ##
 
 The module provides functionality for displaying DataObjects managed via ModelAdmin to appear as though they were 
