@@ -16,14 +16,14 @@ class DataObjectAsPageHolder extends Page
 		'ItemsAsChildren' => false
 	);
 	
-	public function getCMSFields()
+	public function getSettingsFields()
 	{
-		$fields = parent::getCMSFields();
+		$fields = parent::getSettingsFields();
 		
-		$fields->addFieldToTab('Root.Behaviour', new HeaderField('DOAP', 'DataObject Item Display'));
-		$fields->addFieldToTab('Root.Behaviour', new CheckboxField('Paginate', 'Paginate Items'));
-		$fields->addFieldToTab('Root.Behaviour', new NumericField('ItemsPerPage', 'Items per page (if paginated)'));
-		$fields->addFieldToTab('Root.Behaviour', new CheckboxField('ItemsAsChildren', 'Show DataObjects as Children of this page'));
+		$fields->addFieldToTab('Root.Settings', new HeaderField('DOAP', 'DataObject Item Display'));
+		$fields->addFieldToTab('Root.Settings', new CheckboxField('Paginate', 'Paginate Items'));
+		$fields->addFieldToTab('Root.Settings', new NumericField('ItemsPerPage', 'Items per page (if paginated)'));
+		$fields->addFieldToTab('Root.Settings', new CheckboxField('ItemsAsChildren', 'Show DataObjects as Children of this page'));
 		
 		return $fields;
 	}
