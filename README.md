@@ -12,8 +12,9 @@
 ## Overview ##
 
 The module provides functionality for displaying DataObjects managed via ModelAdmin to appear as though they were 
-full Pages on the front end of the site. It includes versioning, allowing Draft and Published versions of the DataObject
-as well as a modified search engine to include the DataObjects in the site search.
+full Pages on the front end of the site. It includes the option to enable versioning, allowing Draft and Published versions of the DataObject.
+
+Searching has been removed for now but will hopefully be added back in future as a standalone module. We would recommend either Lucene or Solr modules for DataObject searchability.
 
 For full instructions on use see: http://www.ssbits.com/tutorials/2012/dataobject-as-pages-the-module/
 
