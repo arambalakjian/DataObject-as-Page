@@ -2,7 +2,7 @@
 
 ## Maintainers
 
- * Aram Balakjian (Nickname: willr, wrossiter)
+ * Aram Balakjian
   <aram at aabweb dot co dot uk>
 
 ## Requirements
@@ -17,14 +17,11 @@ as well as a modified search engine to include the DataObjects in the site searc
 
 For full instructions on use see: http://www.ssbits.com/tutorials/2012/dataobject-as-pages-the-module/
 
-## Maintainer Contact
+##Versioning
 
- * Aram Balakjian 
-   <aram (at) ssbits (dot) com>
+Versioning is now optional, you can enable it by adding the following line to you _config.php
 
-## Requirements
-
- * SilverStripe 2.4.1 or newer
+DataObjectAsPage::enable_versioning();
 
 ## Installation
 
