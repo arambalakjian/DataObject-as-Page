@@ -27,7 +27,7 @@ class DataObjectAsPageAdmin extends ModelAdmin
 			$gridFieldConfig->removeComponentsByType('GridFieldDeleteAction');
 			$gridFieldConfig->addComponent(new VersionedGridFieldDeleteAction());
 		}
-					
+
 	    return $form;
 	}
 	

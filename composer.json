@@ -1,0 +1,17 @@
+{
+	"name": "silverstripe/dataobjectaspage",
+	"description": "Manage DataObjects through model admin but display them as pages on the site",
+	"type": "silverstripe-module",
+	"keywords": ["silverstripe", "dataobjectasapage"],
+	"authors": [
+	{
+		"name": "Aram Balakjian",
+		"email": "aram@aabweb.co.uk"
+	}
+	],
+	"require":
+	{
+		"silverstripe/framework": "3.*",
+		"silverstripe/cms": "3.*"
+	}
+}

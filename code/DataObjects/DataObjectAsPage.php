@@ -24,6 +24,10 @@ class DataObjectAsPage extends DataObject{
 		'Title' => 'Title',
 		'URLSegment' => 'URLSegment'
 	);
+
+	public static $indexes = array(
+		"URLSegment" => true
+	);
 	
 	public static $default_sort = 'Created DESC';
 
@@ -71,80 +75,54 @@ class DataObjectAsPage extends DataObject{
 					
 		if($this->ID)
 		{
-			if($this->isVersioned)
-			{
-				if($this->isPublished() && $this->canPublish() && $this->canDeleteFromLive()) {
-					// "unpublish"
-					$minorActions->push(
-						FormAction::create('unpublish', _t('SiteTree.BUTTONUNPUBLISH', 'Unpublish'), 'delete')
-							->setDescription(_t('SiteTree.BUTTONUNPUBLISHDESC', 'Remove this page from the published site'))
-							->addExtraClass('ss-ui-action-destructive')->setAttribute('data-icon', 'unpublish')
-					);
-				}		
-	
-				if($this->canEdit()) {
-					
-					if($this->canDelete()) {
-						// "delete"
-						$minorActions->push(
-							FormAction::create('delete','Delete')->addExtraClass('delete ss-ui-action-destructive')
-								->setAttribute('data-icon', 'decline')
-						);
-					}
-			
-					if($this->hasChangesOnStage()) {
-						if($this->isPublished() && $this->canEdit())	{
-							// "rollback"
-							$minorActions->push(
-								FormAction::create('rollback', _t('SiteTree.BUTTONCANCELDRAFT', 'Cancel draft changes'), 'delete')
-									->setDescription(_t('SiteTree.BUTTONCANCELDRAFTDESC', 'Delete your draft and revert to the currently published page'))
-							);
-						}
-					}
-			
-					if ($this->canCreate())
-					{	
-						//Create the Duplicate action
-						$minorActions->push( FormAction::create('duplicate', 'Duplicate')
-							->setDescription("Duplicate this item")
-						);
-					}			
-					// "save"
-					$minorActions->push(
-						FormAction::create('doSave',_t('CMSMain.SAVEDRAFT','Save Draft'))->setAttribute('data-icon', 'addpage')
-					);
-				}
-		
-				if($this->canPublish()) {
-					// "publish"
-					$actions->push(
-						FormAction::create('publish', _t('SiteTree.BUTTONSAVEPUBLISH', 'Save & Publish'))
-							->addExtraClass('ss-ui-action-constructive')->setAttribute('data-icon', 'accept')
-					);
-				}							
-			}
-			else 
-			{
+			if($this->isPublished() && $this->canPublish() && $this->canDeleteFromLive()) {
+				// "unpublish"
+				$minorActions->push(
+					FormAction::create('unpublish', _t('SiteTree.BUTTONUNPUBLISH', 'Unpublish'), 'delete')
+						->setDescription(_t('SiteTree.BUTTONUNPUBLISHDESC', 'Remove this page from the published site'))
+						->addExtraClass('ss-ui-action-destructive')->setAttribute('data-icon', 'unpublish')
+				);
+			}		
+
+			if($this->canEdit()) {
+				
 				if($this->canDelete()) {
 					// "delete"
 					$minorActions->push(
 						FormAction::create('delete','Delete')->addExtraClass('delete ss-ui-action-destructive')
 							->setAttribute('data-icon', 'decline')
 					);
-				}	
-			
+				}
+		
+				if($this->hasChangesOnStage()) {
+					if($this->isPublished() && $this->canEdit())	{
+						// "rollback"
+						$minorActions->push(
+							FormAction::create('rollback', _t('SiteTree.BUTTONCANCELDRAFT', 'Cancel draft changes'), 'delete')
+								->setDescription(_t('SiteTree.BUTTONCANCELDRAFTDESC', 'Delete your draft and revert to the currently published page'))
+						);
+					}
+				}
+		
 				if ($this->canCreate())
 				{	
 					//Create the Duplicate action
 					$minorActions->push( FormAction::create('duplicate', 'Duplicate')
 						->setDescription("Duplicate this item")
 					);
-				}				
-				
+				}			
 				// "save"
+				$minorActions->push(
+					FormAction::create('doSave',_t('CMSMain.SAVEDRAFT','Save Draft'))->setAttribute('data-icon', 'addpage')
+				);
+			}
+	
+			if($this->canPublish()) {
+				// "publish"
 				$actions->push(
-					FormAction::create('doSave',_t('CMSMain.SAVE','Save'))->addExtraClass('ss-ui-action-constructive')->setAttribute('data-icon', 'addpage')
-				);						
+					FormAction::create('publish', _t('SiteTree.BUTTONSAVEPUBLISH', 'Save & Publish'))
+						->addExtraClass('ss-ui-action-constructive')->setAttribute('data-icon', 'accept')
+				);
 			}
 			
 		}
