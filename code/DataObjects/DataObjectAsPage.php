@@ -120,7 +120,7 @@ class DataObjectAsPage extends DataObject{
 			if($this->canPublish()) {
 				// "publish"
 				$actions->push(
-					FormAction::create('publish', _t('SiteTree.BUTTONSAVEPUBLISH', 'Save & Publish'))
+					FormAction::create('doPublish', _t('SiteTree.BUTTONSAVEPUBLISH', 'Save & Publish'))
 						->addExtraClass('ss-ui-action-constructive')->setAttribute('data-icon', 'accept')
 				);
 			}
