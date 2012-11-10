@@ -79,16 +79,15 @@ class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemR
 		}
 	}	 
 
-	public function publish($data, $form)
+	public function doPublish($data, $form)
 	{
 		try {
-			
 			if($record = $this->record)
 			{	
 				if (!$record->canPublish()) {
 					throw new ValidationException(_t('GridFieldDetailForm.DeletePermissionsFailure',"No publish permissions"),0);
 				}
-					
+				$this->doSave($data, $form);	
 				$record->doPublish();		
 			}
 			
