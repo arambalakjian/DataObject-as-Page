@@ -56,26 +56,33 @@ class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemR
 
 		// TODO Save this item into the given relationship
 
-		$message = sprintf(
-			_t('GridFieldDetailForm.Saved', 'Saved %s %s'),
-			$this->record->singular_name(),
-			'<a href="' . $this->Link('edit') . '">"' . htmlspecialchars($this->record->Title, ENT_QUOTES) . '"</a>'
-		);
-		
-		$form->sessionMessage($message, 'good');
-
-		if($new_record) {
-			return Controller::curr()->redirect($this->Link());
-		} elseif($this->gridField->getList()->byId($this->record->ID)) {
-			// Return new view, as we can't do a "virtual redirect" via the CMS Ajax
-			// to the same URL (it assumes that its content is already current, and doesn't reload)
-			return $this->edit(Controller::curr()->getRequest());
-		} else {
-			// Changes to the record properties might've excluded the record from
-			// a filtered list, so return back to the main view if it can't be found
-			$noActionURL = $controller->removeAction($data['url']);
-			$controller->getRequest()->addHeader('X-Pjax', 'Content'); 
-			return $controller->redirect($noActionURL, 302); 
+		if($data['publish'])
+		{
+			$this->record->doPublish();
+		}
+		else
+		{
+			$message = sprintf(
+				_t('GridFieldDetailForm.Saved', 'Saved %s %s'),
+				$this->record->singular_name(),
+				'<a href="' . $this->Link('edit') . '">"' . htmlspecialchars($this->record->Title, ENT_QUOTES) . '"</a>'
+			);
+			
+			$form->sessionMessage($message, 'good');
+	
+			if($new_record) {
+				return Controller::curr()->redirect($this->Link());
+			} elseif($this->gridField->getList()->byId($this->record->ID)) {
+				// Return new view, as we can't do a "virtual redirect" via the CMS Ajax
+				// to the same URL (it assumes that its content is already current, and doesn't reload)
+				return $this->edit(Controller::curr()->getRequest());
+			} else {
+				// Changes to the record properties might've excluded the record from
+				// a filtered list, so return back to the main view if it can't be found
+				$noActionURL = $controller->removeAction($data['url']);
+				$controller->getRequest()->addHeader('X-Pjax', 'Content'); 
+				return $controller->redirect($noActionURL, 302); 
+			}			
 		}
 	}	 
 
@@ -84,12 +91,13 @@ class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemR
 		try {
 			
 			if($record = $this->record)
-			{	
+			{
 				if (!$record->canPublish()) {
 					throw new ValidationException(_t('GridFieldDetailForm.DeletePermissionsFailure',"No publish permissions"),0);
 				}
-					
-				$record->doPublish();		
+				
+				$data['publish'] = true;	
+				$this->doSave($data, $form);		
 			}
 			
 		} catch(ValidationException $e) {
