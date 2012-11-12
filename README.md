@@ -1,5 +1,7 @@
 # DataObjectAsPage Module #
 
+## v1.0
+
 ## Maintainers
 
  * Aram Balakjian
@@ -36,7 +38,7 @@ Create 3 new Classes; The Item class, the Admin Class and the Listing Page class
 * The Admin class must extend DataObjectAsPageAdmin
 - Inside the Admin Class, you need to define the standard ModelAdmin attributes
 
-* The Listing Page class must extend DataObjectAsPageHolder and DataObjectAsPage_Controller
+* The Listing Page class must extend DataObjectAsPageHolder and DataObjectAsPageHolder_Controller
 - Inside the ListingPage Controller Class you must define: static $item_class = '[YourItemClass]';
 
 
