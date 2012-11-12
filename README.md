@@ -1,6 +1,6 @@
 # DataObjectAsPage Module #
 
-## v1.0
+ * v1.0
 
 ## Maintainers
 
