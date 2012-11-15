@@ -178,9 +178,11 @@ class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemR
 				
 		$form->sessionMessage($fullMessage, 'good');
 		
+		$controller = Controller::curr();
+		
 		if($this->gridField->getList()->byId($this->record->ID)) 
 		{
-			return $this->edit(Controller::curr()->getRequest());
+			return $this->edit($controller->getRequest());
 		} 
 		else 
 		{
