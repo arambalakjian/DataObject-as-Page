@@ -9,13 +9,10 @@ class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemR
 	
 	function ItemEditForm() 
 	{
-        $form = parent::ItemEditForm();
-		$record = $this->record;
-		
-        $actions = $record->getCMSActions();
-        $form->setActions($actions);
-		
-        return $form;
+    $form = parent::ItemEditForm();
+    $actions = $this->record->getCMSActions();
+    $form->setActions($actions);
+    return $form;
 	}
 	
 	/* 
@@ -126,11 +123,10 @@ class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemR
 		return $this->completeAction($form, $data, 'Unplublished');
 	}
 	
-	public function delete($data, $form)
-	{
+	public function delete($data, $form) {
 		try {
-			$toDelete = $this->record;
-			if (!$toDelete->canDelete()) {
+			$record = $this->record;
+			if (!$record->canDelete()) {
 				throw new ValidationException(_t('GridFieldDetailForm.DeletePermissionsFailure',"No delete permissions"),0);
 			}
 
@@ -145,40 +141,33 @@ class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemR
 	}	
 	
 	public function rollback($data, $form) {
-			 
 		try {
-				if($record = $this->record)
-				{
-		        	$reverted = $record->doRevertToLive();					
-				}
-
+			if($record = $this->record)
+			{
+      	$reverted = $record->doRevertToLive();					
+			}
 		} catch(ValidationException $e) {
 			$this->executeException($form,$e);
 		}        
 		
 		$this->record = $reverted;
-		
 		return $this->completeAction($form, $data, 'Draft changed cancelled for');
-    }	
+  }	
 	
 	public function duplicate($data, $form, $request) {
-			 
 		try {
-				if($record = $this->record)
-				{
-		        	//Duplicate the object
-		        	$clone = $record->doDuplicate();					
-				}
-
+			if($record = $this->record)
+			{
+				//Duplicate the object
+				$clone = $record->doDuplicate();					
+			}
 		} catch(ValidationException $e) {
 			$this->executeException($form,$e);
-		}        
-		
-        $this->record = $clone;
+		}
+    $this->record = $clone;
 		
 		return $this->completeAction($form, $data, 'Duplicated');
-    }	
-
+	}	
 
 	/*
 	 * Consolidating code, repeated in each action funciton above
@@ -189,9 +178,11 @@ class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemR
 				
 		$form->sessionMessage($fullMessage, 'good');
 		
+		$controller = Controller::curr();
+		
 		if($this->gridField->getList()->byId($this->record->ID)) 
 		{
-			return $this->edit(Controller::curr()->getRequest());
+			return $this->edit($controller->getRequest());
 		} 
 		else 
 		{
