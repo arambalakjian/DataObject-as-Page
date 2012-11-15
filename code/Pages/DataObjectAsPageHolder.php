@@ -158,9 +158,9 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 	 */
 	function show()
 	{
-		if(($item = $this->getCurrentItem()))
+		if($item = $this->getCurrentItem())
 		{
-			if ($this->getCurrentItem()->canView())
+			if ($item->canView())
 			{
 				$data = array(
 					'Item' => $item,
