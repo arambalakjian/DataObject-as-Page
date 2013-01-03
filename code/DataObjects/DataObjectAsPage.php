@@ -12,7 +12,6 @@ class DataObjectAsPage extends DataObject{
 		'Title' => 'Varchar(255)',
 		'MetaTitle' => 'Varchar(255)',
 		'MetaDescription' => 'Varchar(255)',
-		'Content' => 'HTMLText'
 	);
 	
 	static $defaults = array(
@@ -26,9 +25,9 @@ class DataObjectAsPage extends DataObject{
 	);
 
 	public static $indexes = array(
-		"URLSegment" => true
-	);
-	
+	  "URLSegment" => true
+	);	
+
 	public static $default_sort = 'Created DESC';
 
 	//Return the Title for use in Menu2
@@ -72,7 +71,7 @@ class DataObjectAsPage extends DataObject{
 
 		$minorActions = CompositeField::create()->setTag('fieldset')->addExtraClass('ss-ui-buttonset');
 		$actions = new FieldList($minorActions);		
-					
+
 		if($this->ID)
 		{
 			if($this->isPublished() && $this->canPublish() && $this->canDeleteFromLive()) {
@@ -85,7 +84,7 @@ class DataObjectAsPage extends DataObject{
 			}		
 
 			if($this->canEdit()) {
-				
+
 				if($this->canDelete()) {
 					// "delete"
 					$minorActions->push(
@@ -93,7 +92,7 @@ class DataObjectAsPage extends DataObject{
 							->setAttribute('data-icon', 'decline')
 					);
 				}
-		
+
 				if($this->hasChangesOnStage()) {
 					if($this->isPublished() && $this->canEdit())	{
 						// "rollback"
@@ -103,7 +102,7 @@ class DataObjectAsPage extends DataObject{
 						);
 					}
 				}
-		
+
 				if ($this->canCreate())
 				{	
 					//Create the Duplicate action
@@ -116,7 +115,7 @@ class DataObjectAsPage extends DataObject{
 					FormAction::create('doSave',_t('CMSMain.SAVEDRAFT','Save Draft'))->setAttribute('data-icon', 'addpage')
 				);
 			}
-	
+
 			if($this->canPublish()) {
 				// "publish"
 				$actions->push(
@@ -124,7 +123,7 @@ class DataObjectAsPage extends DataObject{
 						->addExtraClass('ss-ui-action-constructive')->setAttribute('data-icon', 'accept')
 				);
 			}
-			
+
 		}
 		else 
 		{
@@ -134,22 +133,18 @@ class DataObjectAsPage extends DataObject{
 				->addExtraClass('ss-ui-action-constructive')
 				->setAttribute('data-icon', 'add'));
 		}
-		
+
 		return $actions;
 	} 
 
-
-	public function getCMSFields() 
-	{
-		$fields = parent::getCMSFields();
-		
-		//Add the status/view link
+	protected function getStatusPillField() {
+		$statusPill = '';
+		$links = '';
 		if($this->ID)
 		{
 			if($this->isVersioned)
 			{
-				$status = $this->Status;	
-				
+				$status = $this->Status;			
 				$color = '#E88F31';
 				$links = sprintf(
 					"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?Stage=stage', 'Draft'
@@ -168,7 +163,6 @@ class DataObjectAsPage extends DataObject{
 						$color = '#428620';
 					}
 				}
-				
 				$statusPill = '<h3 class="doapTitle" style="background: '.$color.';">'. $status . '</h3>';
 			}
 			else
@@ -176,58 +170,65 @@ class DataObjectAsPage extends DataObject{
 				$links = sprintf(
 					"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?Stage=stage', 'View'
 				);	
-				
-				$statusPill = "";
 			}
-
-			$fields->addFieldToTab('Root.Main', new LiteralField('', 
-				'<div class="doapToolbar">
-					' . $statusPill . '
-					<p class="doapViewLinks">
-						' . $links . '
-					</p>
-				</div>'
-			));
 		}
 
-		//Remove Scafolded fields
-		$fields->removeFieldFromTab('Root.Main', 'URLSegment');
-		$fields->removeFieldFromTab('Root.Main', 'Status');
-		$fields->removeFieldFromTab('Root.Main', 'Version');
-		$fields->removeFieldFromTab('Root.Main', 'MetaTitle');
-		$fields->removeFieldFromTab('Root.Main', 'MetaDescription');
-		$fields->removeByName('Versions');
-		
-		$fields->addFieldToTab('Root.Main', new TextField('Title'));	
+		$statusPillField = new LiteralField('', 
+			'<div class="doapToolbar">
+				' . $statusPill . '
+				<p class="doapViewLinks">
+					' . $links . '
+				</p>
+			</div>'
+		);
+		return $statusPillField;
+	}
 
-		if($this->ID)
-		{
-			$urlsegment = new SiteTreeURLSegmentField("URLSegment", $this->fieldLabel('URLSegment'));
-			$urlsegment->setURLPrefix(Director::absoluteBaseURL() . 'listing-page/show/');
-			
+	protected function getUrlSegmentField() {
+		$urlSegmentField = null;
+		if ( $this->ID ) {
+			$urlSegmentField = new SiteTreeURLSegmentField("URLSegment", $this->fieldLabel('URLSegment'));
+			$urlSegmentField->setURLPrefix(Director::absoluteBaseURL() . 'listing-page/show/');
 			$helpText = _t('SiteTreeURLSegmentField.HelpChars', ' Special characters are automatically converted or removed.');
-			$urlsegment->setHelpText($helpText);
-			$fields->addFieldToTab('Root.Main', $urlsegment);
+			$urlSegmentField->setHelpText($helpText);
 		}
+		return $urlSegmentField;
+	}
 
-		$fields->addFieldToTab('Root.Main', new HTMLEditorField('Content'));	
-
-		$fields->addFieldToTab('Root.Main',new ToggleCompositeField('Metadata', 'Metadata',
+	protected function getMetadataField() {
+		$metaDataField = new ToggleCompositeField('Metadata', 'Metadata',
 			array(
 				new TextField("MetaTitle", $this->fieldLabel('MetaTitle')),
 				new TextareaField("MetaDescription", $this->fieldLabel('MetaDescription'))
 			)
-		));
-		
-		//$fields->push(new HiddenField('PreviewURL', 'Preview URL', $this->StageLink()));
-		//$fields->push(new TextField('CMSEditURL', 'Preview URL', $this->CMSEditLink()));
-		
+		);
+
+		if($urlSegmentField = $this->getUrlSegmentField())
+		{
+			$metaDataField->push($urlSegmentField);
+		}
+
+		return $metaDataField;
+	}
+
+	public function getCMSFields() 
+	{
+		$fields = new FieldList(
+			$rootTab = new TabSet("Root",
+				$tabMain = new Tab('Main',
+					$this->getStatusPillField(),
+					new TextField('Title'),
+					$this->getUrlSegmentField(),
+					$this->getMetadataField()					
+				)
+			)
+		);
 		return $fields;
 	}
 
 	public static function enable_versioning()
 	{
-	  	DataObject::add_extension('DataObjectAsPage','VersionedDataObjectAsPage');
+	 	DataObject::add_extension('DataObjectAsPage','VersionedDataObjectAsPage');
 		DataObject::add_extension('DataObjectAsPage',"Versioned('Stage', 'Live')");
 	}
 	
