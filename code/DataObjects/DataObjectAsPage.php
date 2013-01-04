@@ -1,7 +1,7 @@
 <?php
 /*
  * Base class for DataObjects that behave like pages
- * 
+ *
  */
 class DataObjectAsPage extends DataObject{
 	
@@ -41,11 +41,11 @@ class DataObjectAsPage extends DataObject{
 	public function canView($member = null)
 	{
 		//If this is draft check for permissions to view draft content
-		//getSearchResultItem is needed to ensure unpublished items don't show up in search results		
+		//getSearchResultItem is needed to ensure unpublished items don't show up in search results
 		if($this->isVersioned && Versioned::current_stage() == 'Stage' && $this->Status == 'Draft')
 		{
 			return (Permission::check('VIEW_DRAFT_CONTENT'));
-		}		
+		}
 		elseif(Controller::curr()->hasMethod("canView"))
 		{
 			//Otherwise return the parent listing pages view permission
@@ -71,7 +71,7 @@ class DataObjectAsPage extends DataObject{
 		$actions = parent::getCMSActions();
 
 		$minorActions = CompositeField::create()->setTag('fieldset')->addExtraClass('ss-ui-buttonset');
-		$actions = new FieldList($minorActions);		
+		$actions = new FieldList($minorActions);
 					
 		if($this->ID)
 		{
@@ -82,7 +82,7 @@ class DataObjectAsPage extends DataObject{
 						->setDescription(_t('SiteTree.BUTTONUNPUBLISHDESC', 'Remove this page from the published site'))
 						->addExtraClass('ss-ui-action-destructive')->setAttribute('data-icon', 'unpublish')
 				);
-			}		
+			}
 
 			if($this->canEdit()) {
 				
@@ -105,12 +105,12 @@ class DataObjectAsPage extends DataObject{
 				}
 		
 				if ($this->canCreate())
-				{	
+				{
 					//Create the Duplicate action
 					$minorActions->push( FormAction::create('duplicate', 'Duplicate')
 						->setDescription("Duplicate this item")
 					);
-				}			
+				}
 				// "save"
 				$minorActions->push(
 					FormAction::create('doSave',_t('CMSMain.SAVEDRAFT','Save Draft'))->setAttribute('data-icon', 'addpage')
@@ -126,7 +126,7 @@ class DataObjectAsPage extends DataObject{
 			}
 			
 		}
-		else 
+		else
 		{
 			//Change the Save label to 'Create'
 			$actions->push(FormAction::create('doSave', _t('GridFieldDetailForm.Create', 'Create'))
@@ -136,10 +136,10 @@ class DataObjectAsPage extends DataObject{
 		}
 		
 		return $actions;
-	} 
+	}
 
 
-	public function getCMSFields() 
+	public function getCMSFields()
 	{
 		$fields = parent::getCMSFields();
 		
@@ -148,7 +148,7 @@ class DataObjectAsPage extends DataObject{
 		{
 			if($this->isVersioned)
 			{
-				$status = $this->Status;	
+				$status = $this->Status;
 				
 				$color = '#E88F31';
 				$links = sprintf(
@@ -175,12 +175,12 @@ class DataObjectAsPage extends DataObject{
 			{
 				$links = sprintf(
 					"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?Stage=stage', 'View'
-				);	
+				);
 				
 				$statusPill = "";
 			}
 
-			$fields->addFieldToTab('Root.Main', new LiteralField('', 
+			$fields->addFieldToTab('Root.Main', new LiteralField('',
 				'<div class="doapToolbar">
 					' . $statusPill . '
 					<p class="doapViewLinks">
@@ -198,7 +198,7 @@ class DataObjectAsPage extends DataObject{
 		$fields->removeFieldFromTab('Root.Main', 'MetaDescription');
 		$fields->removeByName('Versions');
 		
-		$fields->addFieldToTab('Root.Main', new TextField('Title'));	
+		$fields->addFieldToTab('Root.Main', new TextField('Title'));
 
 		if($this->ID)
 		{
@@ -207,10 +207,11 @@ class DataObjectAsPage extends DataObject{
 			
 			$helpText = _t('SiteTreeURLSegmentField.HelpChars', ' Special characters are automatically converted or removed.');
 			$urlsegment->setHelpText($helpText);
+			$urlsegment->setAttribute('data-related-field', 'Title');
 			$fields->addFieldToTab('Root.Main', $urlsegment);
 		}
 
-		$fields->addFieldToTab('Root.Main', new HTMLEditorField('Content'));	
+		$fields->addFieldToTab('Root.Main', new HTMLEditorField('Content'));
 
 		$fields->addFieldToTab('Root.Main',new ToggleCompositeField('Metadata', 'Metadata',
 			array(
@@ -239,17 +240,17 @@ class DataObjectAsPage extends DataObject{
 	/*
 	 * Produce the correct breadcrumb trail for use on the DataObject Item Page
 	*/
-	public function Breadcrumbs($maxDepth = 20, $unlinked = false, $stopAtPageType = false, $showHidden = false) 
+	public function Breadcrumbs($maxDepth = 20, $unlinked = false, $stopAtPageType = false, $showHidden = false)
 	{
 		$page = Controller::curr();
 		$pages = array();
 		
 		while(
-			$page  
- 			&& (!$maxDepth || count($pages) < $maxDepth) 
+			$page
+ 			&& (!$maxDepth || count($pages) < $maxDepth)
  			&& (!$stopAtPageType || $page->ClassName != $stopAtPageType)
  		) {
-			if($showHidden || $page->ShowInMenus || ($page->ID == $this->ID)) { 
+			if($showHidden || $page->ShowInMenus || ($page->ID == $this->ID)) {
 				$pages[] = $page;
 			}
 			
@@ -263,12 +264,12 @@ class DataObjectAsPage extends DataObject{
 		return $template->process($this->customise(new ArrayData(array(
 			'Pages' => new ArrayList($pages)
 		))));
-	}	
+	}
 		
 	/*
 	 * Generate custom metatags to display on the DataObject Item page
-	 */ 
-	public function MetaTags($includeTitle = true) 
+	 */
+	public function MetaTags($includeTitle = true)
 	{
 		$tags = "";
 		if($includeTitle === true || $includeTitle == 'true') {
@@ -296,7 +297,7 @@ class DataObjectAsPage extends DataObject{
 	 *
 	 * @return boolean True if this page has been published.
 	 */
-	function isPublished() 
+	function isPublished()
 	{
 		return (DB::query("SELECT \"ID\" FROM \"DataObjectAsPage_Live\" WHERE \"ID\" = $this->ID")->value())
 			? true
@@ -309,7 +310,7 @@ class DataObjectAsPage extends DataObject{
 	 *
 	 * @return SiteTree The duplicated object.
 	 */
-	 public function doDuplicate($doWrite = true) 
+	 public function doDuplicate($doWrite = true)
 	 {
 		$item = parent::duplicate(false);
 		$this->extend('onBeforeDuplicate', $item);
@@ -329,11 +330,11 @@ class DataObjectAsPage extends DataObject{
 	
 	/**
 	 * Publish this page.
-	 * 
+	 *
 	 * @uses SiteTreeDecorator->onBeforePublish()
 	 * @uses SiteTreeDecorator->onAfterPublish()
 	 */
-	function doPublish() 
+	function doPublish()
 	{
 		if (!$this->canPublish()) return false;
 		
@@ -356,9 +357,9 @@ class DataObjectAsPage extends DataObject{
 
 	/**
 	 * Unpublish this DataObject - remove it from the live site
-	 * 
+	 *
 	 */
-	function doUnpublish() 
+	function doUnpublish()
 	{
 		if(!$this->ID) return false;
 		if (!$this->canDeleteFromLive()) return false;
@@ -387,7 +388,7 @@ class DataObjectAsPage extends DataObject{
 		return true;
 	}
 
-	function doDelete() 
+	function doDelete()
 	{
 		$this->doUnpublish();
 		
@@ -407,7 +408,7 @@ class DataObjectAsPage extends DataObject{
 	/**
 	 * Revert the draft changes: replace the draft content with the content on live
 	 */
-	function doRevertToLive() 
+	function doRevertToLive()
 	{
 		$this->publish("Live", "Stage", false);
 
@@ -447,7 +448,7 @@ class DataObjectAsPage extends DataObject{
 			$listingPage = $listingClass::get()->First();
 		}
 		
-		return $listingPage;		
+		return $listingPage;
 	}
 	
 	/*
@@ -461,8 +462,8 @@ class DataObjectAsPage extends DataObject{
 			//Build link
 			if($listingPage = $item->getListingPage())
 			{
-				return $listingPage->Link('show/' . $item->URLSegment . '/' . $extraURLVar);		
-			}			
+				return $listingPage->Link('show/' . $item->URLSegment . '/' . $extraURLVar);
+			}
 		}
 	}
 	
@@ -470,7 +471,7 @@ class DataObjectAsPage extends DataObject{
 	{
 		if($listingPage = $this->getListingPage())
 		{
-			return $listingPage->absoluteLink('show/' . $this->URLSegment . $appendVal);			
+			return $listingPage->absoluteLink('show/' . $this->URLSegment . $appendVal);
 		}
 	}
 	
@@ -505,11 +506,11 @@ class DataObjectAsPage extends DataObject{
 		
 
 	    // If there is no URLSegment set, generate one from Title
-	    if((!$this->URLSegment || $this->URLSegment == 'new-item') && $this->Title != 'New Item') 
+	    if((!$this->URLSegment || $this->URLSegment == 'new-item') && $this->Title != 'New Item')
 	    {
 	        $this->URLSegment = $this->generateURLSegment($this->Title);
-	    } 
-	    else if($this->isChanged('URLSegment')) 
+	    }
+	    else if($this->isChanged('URLSegment'))
 	    {
 	        // Make sure the URLSegment is valid for use in a URL
 	        $segment = preg_replace('/[^A-Za-z0-9]+/','-',$this->URLSegment);
@@ -528,8 +529,8 @@ class DataObjectAsPage extends DataObject{
 		$URLSegment = $this->URLSegment;
 		$ID = $this->ID;
 
-	    while($this->LookForExistingURLSegment($URLSegment, $ID)) 
-	    {     	
+	    while($this->LookForExistingURLSegment($URLSegment, $ID))
+	    {
 	        $URLSegment = preg_replace('/-[0-9]+$/', null, $URLSegment) . '-' . $count;
 	        $count++;
 	    }
@@ -554,7 +555,7 @@ class DataObjectAsPage extends DataObject{
 				} else {
 					DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = $this->ID AND Version != '" . $DraftVersionID . "'");
 				}
-			}			
+			}
 		}
 
 	}
@@ -570,12 +571,12 @@ class DataObjectAsPage extends DataObject{
 	
 	/**
 	 * Generate a URL segment based on the title provided.
-	 * 
+	 *
 	 * If {@link Extension}s wish to alter URL segment generation, they can do so by defining
 	 * updateURLSegment(&$url, $title).  $url will be passed by reference and should be modified.
 	 * $title will contain the title that was originally used as the source of this generated URL.
 	 * This lets extensions either start from scratch, or incrementally modify the generated URL.
-	 * 
+	 *
 	 * @param string $title Page title.
 	 * @return string Generated url segment
 	 */
