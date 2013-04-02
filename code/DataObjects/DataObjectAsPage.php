@@ -5,9 +5,9 @@
  */
 class DataObjectAsPage extends DataObject{
 	
-	static $listing_page_class = 'DataObjectAsPageHolder';
+	private static $listing_page_class = 'DataObjectAsPageHolder';
 	
-	static $db = array (
+	private static $db = array (
 		'URLSegment' => 'Varchar(100)',
 		'Title' => 'Varchar(255)',
 		'MetaTitle' => 'Varchar(255)',
@@ -15,21 +15,21 @@ class DataObjectAsPage extends DataObject{
 		'Content' => 'HTMLText'
 	);
 	
-	static $defaults = array(
+	private static $defaults = array(
 		'Title'=>'New Item',
 		'URLSegment' => 'new-item'
 	);
 	
-	static $summary_fields = array(
+	private static $summary_fields = array(
 		'Title' => 'Title',
 		'URLSegment' => 'URLSegment'
 	);
 
-	public static $indexes = array(
+	private static $indexes = array(
 		"URLSegment" => true
 	);
 	
-	public static $default_sort = 'Created DESC';
+	private static $default_sort = 'Created DESC';
 
 	//Return the Title for use in Menu2
 	public function MenuTitle()
@@ -231,7 +231,7 @@ class DataObjectAsPage extends DataObject{
 		DataObject::add_extension('DataObjectAsPage',"Versioned('Stage', 'Live')");
 	}
 	
-	function getisVersioned()
+	public function getisVersioned()
 	{
 		return $this->hasExtension('Versioned');
 	}
@@ -296,7 +296,7 @@ class DataObjectAsPage extends DataObject{
 	 *
 	 * @return boolean True if this page has been published.
 	 */
-	function isPublished() 
+	public function isPublished() 
 	{
 		return (DB::query("SELECT \"ID\" FROM \"DataObjectAsPage_Live\" WHERE \"ID\" = $this->ID")->value())
 			? true
@@ -333,7 +333,7 @@ class DataObjectAsPage extends DataObject{
 	 * @uses SiteTreeDecorator->onBeforePublish()
 	 * @uses SiteTreeDecorator->onAfterPublish()
 	 */
-	function doPublish() 
+	public function doPublish() 
 	{
 		if (!$this->canPublish()) return false;
 		
@@ -358,7 +358,7 @@ class DataObjectAsPage extends DataObject{
 	 * Unpublish this DataObject - remove it from the live site
 	 * 
 	 */
-	function doUnpublish() 
+	public function doUnpublish() 
 	{
 		if(!$this->ID) return false;
 		if (!$this->canDeleteFromLive()) return false;
@@ -387,7 +387,7 @@ class DataObjectAsPage extends DataObject{
 		return true;
 	}
 
-	function doDelete() 
+	public function doDelete() 
 	{
 		$this->doUnpublish();
 		
@@ -407,7 +407,7 @@ class DataObjectAsPage extends DataObject{
 	/**
 	 * Revert the draft changes: replace the draft content with the content on live
 	 */
-	function doRevertToLive() 
+	public function doRevertToLive() 
 	{
 		$this->publish("Live", "Stage", false);
 
@@ -434,7 +434,7 @@ class DataObjectAsPage extends DataObject{
 	/*
 	 * Get the listing page to view this Event on (used in Link functions below)
 	 */
-	function getListingPage(){
+	public function getListingPage(){
 		
 		$listingClass = $this->stat('listing_page_class');
 		
@@ -453,7 +453,7 @@ class DataObjectAsPage extends DataObject{
 	/*
 	 * Generate the link to this DataObject Item page
 	 */
-	function Link($extraURLVar = null)
+	public function Link($extraURLVar = null)
 	{
 		//Hack for search results
 		if($item =  DataObject::get_by_id(get_class($this), $this->ID))
@@ -466,7 +466,7 @@ class DataObjectAsPage extends DataObject{
 		}
 	}
 	
-	function absoluteLink($appendVal = null)
+	public function absoluteLink($appendVal = null)
 	{
 		if($listingPage = $this->getListingPage())
 		{
@@ -538,7 +538,8 @@ class DataObjectAsPage extends DataObject{
 
 	}
 	 
-	function onAfterWrite() {
+	public function onAfterWrite() 
+	{
    		parent::onAfterWrite();
 		
 		if($this->ID && $this->isVersioned)
@@ -579,7 +580,8 @@ class DataObjectAsPage extends DataObject{
 	 * @param string $title Page title.
 	 * @return string Generated url segment
 	 */
-	function generateURLSegment($title){
+	public function generateURLSegment($title)
+	{
 		$filter = URLSegmentFilter::create();
 		$t = $filter->filter($title);
 		

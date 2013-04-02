@@ -7,7 +7,7 @@ class VersionedGridFieldDetailForm extends GridFieldDetailForm {
 
 class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemRequest {
 	
-	function ItemEditForm() 
+	public function ItemEditForm() 
 	{
     $form = parent::ItemEditForm();
     $actions = $this->record->getCMSActions();
