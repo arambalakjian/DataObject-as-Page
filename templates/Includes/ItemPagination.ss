@@ -5,7 +5,7 @@
 				<a class="pages prev" href="$Items.PrevLink" title="View the previous page">Prev</a>
 			<% end_if %>
 
-	    	<% control Items.PaginationSummary(4) %>
+	    	<% loop Items.PaginationSummary(4) %>
 				<% if CurrentBool %>
 					<span class="current">$PageNum</span>
 				<% else %>
@@ -15,7 +15,7 @@
 						&hellip;
 					<% end_if %>
 				<% end_if %>
-			<% end_control %>
+			<% end_loop %>
 		
 			<% if Items.NotLastPage %>
 				<a class="pages next" href="$Items.NextLink" title="View the next page">Next</a>
