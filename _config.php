@@ -7,13 +7,6 @@ define('MOD_DOAP_DIR',rtrim(array_pop($folders),DIRECTORY_SEPARATOR));
 unset($folders);
 
 /*
- * This fixesthe URL segment editor in model admin
- * 
- * Note this will prevent any URL segment editor buttons from having translations
- */
-DataObject::add_extension('LeftAndMain', 'DataObjectAsPageLeftAndMain');
-
-/*
  * Add this line to your _config.php to enable versioning on your DataObjectAsPage classes.
  * 
  * Unfortunately this will to apply to all your DOAP classes as it needs to apply to the root DOAP class.
