@@ -28,7 +28,7 @@ DataObjectAsPage::enable_versioning();
 
 ## Installation
 
-Unpack and copy the mobile folder into your SilverStripe project.
+Unpack and copy the module folder into your SilverStripe project.
 
 Create 3 new Classes; The Item class, the Admin Class and the Listing Page class.
 
@@ -44,4 +44,4 @@ Create 3 new Classes; The Item class, the Admin Class and the Listing Page class
 
 Run "dev/build" in your browser, for example: "http://localhost/silverstripe/dev/build?flush=all"
 
-For full installation and extention options visit http://www.ssbits.com/tutorials/2012/dataobject-as-pages-the-module/
+For full installation and extension options visit http://www.ssbits.com/tutorials/2012/dataobject-as-pages-the-module/
