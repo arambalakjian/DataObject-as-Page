@@ -244,6 +244,8 @@ class DataObjectAsPage extends DataObject{
 		$page = Controller::curr();
 		$pages = array();
 		
+		$pages[] = $this;
+		
 		while(
 			$page  
  			&& (!$maxDepth || count($pages) < $maxDepth) 
@@ -256,14 +258,12 @@ class DataObjectAsPage extends DataObject{
 			$page = $page->Parent;
 		}
 		
-		$pages[] = $this;
-		
 		$template = new SSViewer('BreadcrumbsTemplate');
 		
 		return $template->process($this->customise(new ArrayData(array(
-			'Pages' => new ArrayList($pages)
+			'Pages' => new ArrayList(array_reverse($pages))
 		))));
-	}	
+	}
 		
 	/*
 	 * Generate custom metatags to display on the DataObject Item page
