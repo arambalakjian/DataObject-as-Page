@@ -53,7 +53,7 @@ class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemR
 
 		// TODO Save this item into the given relationship
 
-		if($data['publish'])
+		if(isset($data['publish']) && $data['publish'])
 		{
 			$this->record->doPublish();
 		}
