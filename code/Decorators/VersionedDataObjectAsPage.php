@@ -2,19 +2,19 @@
 
 class VersionedDataObjectAsPage extends DataExtension{
 	
-	static $db = array(
+	private static $db = array(
 		"Status" => "Varchar"	
 	);
 	
-	static $summary_fields = array(
+	private static $summary_fields = array(
 		'Status' => 'Status'
 	);	
 	
-	static $defaults = array(
+	private static $defaults = array(
 		'Status' => 'Draft'
 	);	
 
-	static $versioning = array(
+	private static $versioning = array(
 		"Stage",  "Live"
 	);
 }

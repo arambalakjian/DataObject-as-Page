@@ -11,7 +11,7 @@ class DataObjectAsPageAdmin extends ModelAdmin
 		Requirements::CSS(MOD_DOAP_DIR . '/css/dataobjectaspageadmin.css');
 	}
 	
-	function getEditForm($id = null, $fields = null) {
+	public function getEditForm($id = null, $fields = null) {
 
 	    $form = parent::getEditForm($id = null, $fields = null);    
 	    

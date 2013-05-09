@@ -2,15 +2,15 @@
 
 class DataObjectAsPageHolder extends Page 
 {
-	static $hide_ancestor = 'DataObjectAsPageHolder';
+	private static $hide_ancestor = 'DataObjectAsPageHolder';
 	
-	static $db = array(
+	private static $db = array(
 		'ItemsPerPage' => 'Int',
 		'ItemsAsChildren' => 'Boolean',
 		'Paginate' => 'Boolean'
 	);
 	
-	static $defaults = array(
+	private static $defaults = array(
 		'ItemsPerPage' => 10,
 		'Paginate' => true,
 		'ItemsAsChildren' => false
@@ -98,8 +98,8 @@ class DataObjectAsPageHolder extends Page
 class DataObjectAsPageHolder_Controller extends Page_Controller 
 {
 	//Class Of Object Listied on this page
-	static $item_class = 'DataObjectAsPage';
-	static $item_sort = 'Created DESC';
+	private static $item_class = 'DataObjectAsPage';
+	private static $item_sort = 'Created DESC';
 	
 	public static $allowed_actions = array(
 		'show'
@@ -108,7 +108,7 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 	/*
 	 * Returns the items to list on this page pagintated or Limited
 	 */
-	function Items($limit = null)
+	public function Items($limit = null)
 	{
 		//Set custom filter
 		$where = ($this->hasMethod('getItemsWhere')) ? $this->getItemsWhere() : Null;
@@ -156,7 +156,7 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 	 * 
 	 * Uses DataObjectAsPageViewer_show.ss by default
 	 */
-	function show()
+	public function show()
 	{
 		if($item = $this->getCurrentItem())
 		{

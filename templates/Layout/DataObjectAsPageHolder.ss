@@ -8,13 +8,13 @@
 	  	<% include BreadCrumbs %>
 		
 		<ul class="itemList">
-		<% control Items %>
+		<% loop Items %>
 			<li>
 				<h2><a href="$Link">$Title</a></h2>
 				<p>$Content.FirstParagraph</p>
 				<a href="$Link">View</a>
 			</li>
-		<% end_control %>
+		<% end_loop %>
 		</ul>
 		
 		<% include ItemPagination %>
