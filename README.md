@@ -9,7 +9,7 @@
 
 ## Requirements
 
- * SilverStripe 3.0
+ * SilverStripe 3.1.x
 
 ## Overview ##
 
