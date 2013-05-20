@@ -7,7 +7,7 @@
  */
 class DataObjectAsPageLeftAndMain extends Extension{
 
-	function init() {
+	public function init() {
 		Requirements::block(CMS_DIR . '/javascript/SiteTreeURLSegmentField.js');
 	    Requirements::javascript(MOD_DOAP_DIR . '/javascript/SiteTreeURLSegmentField_modeladmin.js');
 	}

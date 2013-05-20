@@ -1,0 +1,8 @@
+---
+Name: dataobjectaspage
+---
+# This fixes the URL segment editor in model admin
+# Note this will prevent any URL segment editor buttons from having translations
+LeftAndMain:
+  extensions:
+    [DataObjectAsPageLeftAndMain]

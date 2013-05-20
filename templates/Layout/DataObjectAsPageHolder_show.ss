@@ -9,11 +9,11 @@
 			   	<p>$Breadcrumbs</p>
 			</div>
 			
-			<% control Item %>
+			<% loop Item %>
 				<h2>$Title</h2>
 				
 				$Content
-			<% end_control %>
+			<% end_loop %>
 	
 	<% if Children %>
 		</div>
