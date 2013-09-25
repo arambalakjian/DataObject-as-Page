@@ -2,11 +2,16 @@
 
 class VersionedGridFieldDetailForm extends GridFieldDetailForm {
 	
-	    
 }
 
 class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemRequest {
-	
+
+	private static $allowed_actions = array(
+		'edit',
+		'view',
+		'ItemEditForm'
+	);
+
 	public function ItemEditForm() 
 	{
     $form = parent::ItemEditForm();
@@ -26,7 +31,7 @@ class VersionedGridFieldDetailForm_ItemRequest extends GridFieldDetailForm_ItemR
 		return $baseLink;
 	}
 	*/
-	
+
 	public function doSave($data, $form) {
 		$new_record = $this->record->ID == 0;
 		$controller = Controller::curr();
