@@ -9,7 +9,9 @@
 
 ## Requirements
 
- * SilverStripe 3.1.x
+ * Master -> SilverStripe 3.1.0
+ * 3.0 -> SilverStripe 3.0.x
+ * 2.4 -> SilverStripe 2.4.x
 
 ## Overview ##
 
