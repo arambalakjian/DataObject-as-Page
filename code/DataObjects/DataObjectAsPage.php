@@ -579,8 +579,9 @@ class DataObjectAsPage extends DataObject {
 	 */
 	public function LinkingMode()
     {
+    	$listingClass = $this->stat('listing_page_class');
         //Check that we have a controller to work with and that it is a listing page
-        if(($controller = Controller::Curr()) && (Controller::curr() instanceof $this->stat('listing_page_class')))
+        if(($controller = Controller::Curr()) && (Controller::curr() instanceof $listingClass))
         {
             //check that the action is 'show' and that we have an item to work with
             if($controller->getAction() == 'show' && $item = $controller->getCurrentItem())
@@ -641,7 +642,7 @@ class DataObjectAsPage extends DataObject {
 	   	return DataObjectAsPage::get()->filter(array(
 			'URLSegment' => $URLSegment,
 			'ID' => $ID
-		)->exists();
+		))->exists();
 	}
 	
 	/**
