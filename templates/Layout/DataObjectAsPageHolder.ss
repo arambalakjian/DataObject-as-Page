@@ -1,6 +1,6 @@
 <div class="typography">
 	
-	<% if Children %>
+	<% if $Children %>
 		<% include SideBar %>
 		<div id="Content">
 	<% end_if %>
@@ -8,7 +8,7 @@
 	  	<% include BreadCrumbs %>
 		
 		<ul class="itemList">
-		<% loop Items %>
+		<% loop $Items %>
 			<li>
 				<h2><a href="$Link">$Title</a></h2>
 				<p>$Content.FirstParagraph</p>
@@ -19,7 +19,7 @@
 		
 		<% include ItemPagination %>
 		
-	<% if Children %>
+	<% if $Children %>
 		</div>
 	<% end_if %>
 </div>
