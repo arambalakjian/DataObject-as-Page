@@ -3,8 +3,11 @@
  * Base class for DataObjects that behave like pages
  * 
  */
-class DataObjectAsPage extends DataObject{
+class DataObjectAsPage extends DataObject {
 	
+	/**
+	 * @var defind the listing page class name
+	 */
 	private static $listing_page_class = 'DataObjectAsPageHolder';
 	
 	private static $db = array (
@@ -26,53 +29,129 @@ class DataObjectAsPage extends DataObject{
 	);
 
 	private static $indexes = array(
-		"URLSegment" => true
+		"URLSegment" => array(
+			'type' => 'unique',
+			'value' => 'URLSegment'
+		)
 	);
 	
 	private static $default_sort = 'Created DESC';
 
-	//Return the Title for use in Menu2
+	/**
+	 * Provide compatability with Menu loops in templates
+	 */
 	public function MenuTitle()
 	{
 		return $this->Title;
 	}
 
-	//Chek if current user can view
+	/**
+	 * Override getMetaTitle to keep DB cleaner
+	 *
+	 * @return string The Meta Title
+	 */
+	public function getMetaTitle()
+	{
+		if ($value = $this->getField('MetaTitle'))
+		{
+			return $value;
+		}
+		return $this->getField('Title');
+	}
+
+	/**
+	 * Override getMetaTitle to keep DB cleaner
+	 *
+	 * @param string $value The value for the MetaTitle field
+	 */
+	public function setMetaTitle($value) {
+		if ($value == $this->getField('Title'))
+		{
+			$this->setField('MetaTitle', null);
+		}
+		else
+		{
+			$this->setField('MetaTitle', $value);
+		}
+	}
+
+	/**
+	 * Check if the member can view
+	 *
+	 * @param Member $member The member to check against
+	 * @return boolean Whether the member or current member can view
+	 */
 	public function canView($member = null)
 	{
+		//if no member was supplied assume current member
+		if(!$member || !(is_a($member, 'Member')) || is_numeric($member)) $member = Member::currentUser();
+
+		// Standard mechanism for accepting permission changes from extensions
+		$extended = $this->extendedCan('canView', $member);
+		if($extended !==null) return $extended;
+
 		//If this is draft check for permissions to view draft content
 		//getSearchResultItem is needed to ensure unpublished items don't show up in search results		
 		if($this->isVersioned && Versioned::current_stage() == 'Stage' && $this->Status == 'Draft')
 		{
-			return (Permission::check('VIEW_DRAFT_CONTENT'));
+			return Permission::checkMember($member,'VIEW_DRAFT_CONTENT');
 		}		
 		elseif(Controller::curr()->hasMethod("canView"))
 		{
 			//Otherwise return the parent listing pages view permission
-			return Controller::curr()->canView();
+			return Controller::curr()->canView($member);
 		}
+		return true;
 	}
 
-	//Chek if current user can view
+	/**
+	 * Check if the member can publish
+	 *
+	 * @param Member $member The member to check against
+	 * @return boolean Whether the member or current member can publish
+	 */
 	public function canPublish($member = null)
 	{
-		return true;
+		if(!$member || !(is_a($member, 'Member')) || is_numeric($member)) $member = Member::currentUser();
+
+		if($member && Permission::checkMember($member, "ADMIN")) return true;
+
+		// Standard mechanism for accepting permission changes from extensions
+		$extended = $this->extendedCan('canPublish', $member);
+		if($extended !== null) return $extended;
+
+		// Normal case - fail over to canEdit()
+		return $this->canEdit($member);
 	}
 
-	//Chek if current user can view
+	/**
+	 * Check if the member can delete live content
+	 *
+	 * @param Member $member The member to check against
+	 * @return boolean Whether the member or current member can delete live content
+	 */
 	public function canDeleteFromLive($member = null)
 	{
-		return true;
+		//if no member was supplied assume current member
+		if(!$member || !(is_a($member, 'Member')) || is_numeric($member)) $member = Member::currentUser();
+
+		// Standard mechanism for accepting permission changes from extensions
+		$extended = $this->extendedCan('canDeleteFromLive', $member);
+		if($extended !==null) return $extended;
+
+		return $this->canPublish($member);
 	}
 
-    //Create duplicate button
+    /**
+	 * Override the CMS acctions to create a "duplicate" button
+	 *
+	 * @return FieldList The updated list of actions
+	 */
 	public function getCMSActions()
 	{
-		$actions = parent::getCMSActions();
-
 		$minorActions = CompositeField::create()->setTag('fieldset')->addExtraClass('ss-ui-buttonset');
-		$actions = new FieldList($minorActions);		
-					
+		$actions = new FieldList($minorActions);
+
 		if($this->ID)
 		{
 			if($this->isPublished() && $this->canPublish() && $this->canDeleteFromLive()) {
@@ -138,7 +217,11 @@ class DataObjectAsPage extends DataObject{
 		return $actions;
 	} 
 
-
+	/**
+	 * Overload getCMSFields for our custom fields
+	 *
+	 * @return FieldList The list of CMS Fields
+	 */
 	public function getCMSFields() 
 	{
 		$fields = parent::getCMSFields();
@@ -160,7 +243,7 @@ class DataObjectAsPage extends DataObject{
 					$color = '#000';
 					$links .= sprintf(
 						"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?Stage=live', 'Published'
-					);;
+					);
 					
 					if($this->hasChangesOnStage())
 					{
@@ -225,20 +308,28 @@ class DataObjectAsPage extends DataObject{
 		return $fields;
 	}
 
+	/**
+	 * Utility function to enable versioning in a simple call
+	 */
 	public static function enable_versioning()
 	{
 	  	DataObject::add_extension('DataObjectAsPage','VersionedDataObjectAsPage');
 		DataObject::add_extension('DataObjectAsPage',"Versioned('Stage', 'Live')");
 	}
 	
+	/**
+	 * Check if the DOAP is versioned
+	 *
+	 * @return boolean
+	 */
 	public function getisVersioned()
 	{
 		return $this->hasExtension('Versioned');
 	}
 
-	/*
+	/**
 	 * Produce the correct breadcrumb trail for use on the DataObject Item Page
-	*/
+	 */
 	public function Breadcrumbs($maxDepth = 20, $unlinked = false, $stopAtPageType = false, $showHidden = false) 
 	{
 		$page = Controller::curr();
@@ -265,7 +356,7 @@ class DataObjectAsPage extends DataObject{
 		))));
 	}
 		
-	/*
+	/**
 	 * Generate custom metatags to display on the DataObject Item page
 	 */ 
 	public function MetaTags($includeTitle = true) 
@@ -387,6 +478,9 @@ class DataObjectAsPage extends DataObject{
 		return true;
 	}
 
+	/**
+	 * Function to delete the DOAP including from versioned tables
+	 */
 	public function doDelete() 
 	{
 		$this->doUnpublish();
@@ -431,14 +525,14 @@ class DataObjectAsPage extends DataObject{
 		return ($latestPublishedVersion < $latestVersion);
 	}
 	
-	/*
+	/**
 	 * Get the listing page to view this Event on (used in Link functions below)
 	 */
 	public function getListingPage(){
 		
 		$listingClass = $this->stat('listing_page_class');
 		
-		if(Controller::curr()->ClassName == $listingClass)
+		if(Controller::curr() instanceof $listingClass)
 		{
 			$listingPage = Controller::curr();
 		}
@@ -450,37 +544,43 @@ class DataObjectAsPage extends DataObject{
 		return $listingPage;		
 	}
 	
-	/*
+	/**
 	 * Generate the link to this DataObject Item page
 	 */
-	public function Link($extraURLVar = null)
+	public function Link($action = null)
 	{
 		//Hack for search results
-		if($item =  DataObject::get_by_id(get_class($this), $this->ID))
+		if($item = DataObjectAsPage::get()->byID($this->ID))
 		{
 			//Build link
 			if($listingPage = $item->getListingPage())
 			{
-				return $listingPage->Link('show/' . $item->URLSegment . '/' . $extraURLVar);		
+				return Controller::join_links($listingPage->Link(), 'show', $item->URLSegment, $action);
 			}			
 		}
 	}
 	
-	public function absoluteLink($appendVal = null)
+	/**
+	 * Create an absolute link to the DOAP
+	 *
+	 * @param string $action Optional URL action to append
+	 * @return string The absolute link
+	 */
+	public function AbsoluteLink($action = null)
 	{
 		if($listingPage = $this->getListingPage())
 		{
-			return $listingPage->absoluteLink('show/' . $this->URLSegment . $appendVal);			
+			return Controller::join_links($listingPage->AbsoluteLink(), 'show', $this->URLSegment, $action);
 		}
 	}
 	
-	/*
+	/**
 	 * Return the correct linking mode, for use in menus
 	 */
 	public function LinkingMode()
     {
         //Check that we have a controller to work with and that it is a listing page
-        if(($controller = Controller::Curr()) && (Controller::Curr()->ClassName == $this->stat('listing_page_class')))
+        if(($controller = Controller::Curr()) && (Controller::curr() instanceof $this->stat('listing_page_class')))
         {
             //check that the action is 'show' and that we have an item to work with
             if($controller->getAction() == 'show' && $item = $controller->getCurrentItem())
@@ -490,22 +590,17 @@ class DataObjectAsPage extends DataObject{
         }
     }
 
-	/*
+	/**
 	 * Set URLSegment to be unique on write
-	*/
+	 */
 	public function onBeforeWrite()
 	{
 	    parent::onBeforeWrite();
 		
-		//Set MetaData
-		if(!$this->MetaTitle)
-		{
-			$this->MetaTitle = $this->Title;
-		}
-		
+		$defaults = $this->config()->defaults;
 
 	    // If there is no URLSegment set, generate one from Title
-	    if((!$this->URLSegment || $this->URLSegment == 'new-item') && $this->Title != 'New Item') 
+	    if((!$this->URLSegment || $this->URLSegment == $defaults['URLSegment']) && $this->Title != $defaults['Title'])
 	    {
 	        $this->URLSegment = $this->generateURLSegment($this->Title);
 	    } 
@@ -537,36 +632,16 @@ class DataObjectAsPage extends DataObject{
 		$this->URLSegment = $URLSegment;
 
 	}
-	 
-	public function onAfterWrite() 
-	{
-   		parent::onAfterWrite();
-		
-		if($this->ID && $this->isVersioned)
-		{
-			// Clear out obselete versions of records since there is no way to role back to previous versions yet.
-			if(DB::query("SELECT \"ID\" FROM \"DataObjectAsPage\" WHERE \"ID\" = $this->ID")->value()) {
-	
-				$LiveVersionID = DB::query("SELECT \"Version\" FROM \"DataObjectAsPage_Live\" WHERE \"ID\" = $this->ID")->value();
-				$DraftVersionID = DB::query("SELECT \"Version\" FROM \"DataObjectAsPage\" WHERE \"ID\" = $this->ID")->value();
-	
-				if($LiveVersionID){
-					DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = $this->ID AND Version != '" . $DraftVersionID . "' AND Version != '" . $LiveVersionID . "'");
-				} else {
-					DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = $this->ID AND Version != '" . $DraftVersionID . "'");
-				}
-			}			
-		}
 
-	}
-
-	//Test whether the URLSegment exists already on another Item
+	/**
+	 * Check if there is already a DOAP with this URLSegment
+	 */
 	public function LookForExistingURLSegment($URLSegment, $ID)
 	{
-		$where = "URLSegment = '" . $URLSegment . "' AND ID != $ID";
-	   	$item = DataObjectAsPage::get()->where($where)->first();
-
-		return $item;
+	   	return DataObjectAsPage::get()->filter(array(
+			'URLSegment' => $URLSegment,
+			'ID' => $ID
+		)->exists();
 	}
 	
 	/**
