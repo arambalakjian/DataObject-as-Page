@@ -5,11 +5,11 @@
 ## Maintainers
 
  * Aram Balakjian
-  <aram at aabweb dot co dot uk>
+  <aram at carboncrayon dot com>
 
 ## Requirements
 
- * Master -> SilverStripe 3.1.0
+ * 3.1 -> SilverStripe 3.1.x
  * 3.0 -> SilverStripe 3.0.x
  * 2.4 -> SilverStripe 2.4.x
 
