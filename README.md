@@ -1,13 +1,11 @@
 # DataObjectAsPage Module #
 
- * v1.0
-
 ## Maintainers
 
  * Aram Balakjian
   <aram at carboncrayon dot com>
 
-## Requirements
+## Branch Requirements
 
  * 3.1 -> SilverStripe 3.1.x
  * 3.0 -> SilverStripe 3.0.x
