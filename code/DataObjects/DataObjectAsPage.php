@@ -142,81 +142,6 @@ class DataObjectAsPage extends DataObject {
 		return $this->canPublish($member);
 	}
 
-    /**
-	 * Override the CMS acctions to create a "duplicate" button
-	 *
-	 * @return FieldList The updated list of actions
-	 */
-	public function getCMSActions()
-	{
-		$minorActions = CompositeField::create()->setTag('fieldset')->addExtraClass('ss-ui-buttonset');
-		$actions = new FieldList($minorActions);
-
-		if($this->ID)
-		{
-			if($this->isPublished() && $this->canPublish() && $this->canDeleteFromLive()) {
-				// "unpublish"
-				$minorActions->push(
-					FormAction::create('unpublish', _t('SiteTree.BUTTONUNPUBLISH', 'Unpublish'), 'delete')
-						->setDescription(_t('SiteTree.BUTTONUNPUBLISHDESC', 'Remove this page from the published site'))
-						->addExtraClass('ss-ui-action-destructive')->setAttribute('data-icon', 'unpublish')
-				);
-			}		
-
-			if($this->canEdit()) {
-				
-				if($this->canDelete()) {
-					// "delete"
-					$minorActions->push(
-						FormAction::create('delete','Delete')->addExtraClass('delete ss-ui-action-destructive')
-							->setAttribute('data-icon', 'decline')
-					);
-				}
-		
-				if($this->hasChangesOnStage()) {
-					if($this->isPublished() && $this->canEdit())	{
-						// "rollback"
-						$minorActions->push(
-							FormAction::create('rollback', _t('SiteTree.BUTTONCANCELDRAFT', 'Cancel draft changes'), 'delete')
-								->setDescription(_t('SiteTree.BUTTONCANCELDRAFTDESC', 'Delete your draft and revert to the currently published page'))
-						);
-					}
-				}
-		
-				if ($this->canCreate())
-				{	
-					//Create the Duplicate action
-					$minorActions->push( FormAction::create('duplicate', 'Duplicate')
-						->setDescription("Duplicate this item")
-					);
-				}			
-				// "save"
-				$minorActions->push(
-					FormAction::create('doSave',_t('CMSMain.SAVEDRAFT','Save Draft'))->setAttribute('data-icon', 'addpage')
-				);
-			}
-	
-			if($this->canPublish()) {
-				// "publish"
-				$actions->push(
-					FormAction::create('publish', _t('SiteTree.BUTTONSAVEPUBLISH', 'Save & Publish'))
-						->addExtraClass('ss-ui-action-constructive')->setAttribute('data-icon', 'accept')
-				);
-			}
-			
-		}
-		else 
-		{
-			//Change the Save label to 'Create'
-			$actions->push(FormAction::create('doSave', _t('GridFieldDetailForm.Create', 'Create'))
-				->setUseButtonTag(true)
-				->addExtraClass('ss-ui-action-constructive')
-				->setAttribute('data-icon', 'add'));
-		}
-		
-		return $actions;
-	} 
-
 	/**
 	 * Overload getCMSFields for our custom fields
 	 *
@@ -231,18 +156,18 @@ class DataObjectAsPage extends DataObject {
 		{
 			if($this->isVersioned)
 			{
-				$status = $this->Status;	
+				$status = $this->getStatus();	
 				
 				$color = '#E88F31';
 				$links = sprintf(
-					"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?Stage=stage', 'Draft'
+					"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?stage=Stage', 'Draft'
 				);
 			
-				if($this->Status == 'Published')
+				if($status == 'Published')
 				{
 					$color = '#000';
 					$links .= sprintf(
-						"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?Stage=live', 'Published'
+						"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?stage=Live', 'Published'
 					);
 					
 					if($this->hasChangesOnStage())
@@ -257,7 +182,7 @@ class DataObjectAsPage extends DataObject {
 			else
 			{
 				$links = sprintf(
-					"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?Stage=stage', 'View'
+					"<a target=\"_blank\" class=\"ss-ui-button\" data-icon=\"preview\" href=\"%s\">%s</a>", $this->Link() . '?stage=Stage', 'View'
 				);	
 				
 				$statusPill = "";
@@ -382,6 +307,11 @@ class DataObjectAsPage extends DataObject {
 		return $tags;
 	}
 
+	public function getStatus()
+	{
+		return $this->isPublished() ? "Published" : "Draft";
+	}
+
 	/**
 	 * Check if this page has been published.
 	 *
@@ -392,126 +322,6 @@ class DataObjectAsPage extends DataObject {
 		return (DB::query("SELECT \"ID\" FROM \"DataObjectAsPage_Live\" WHERE \"ID\" = $this->ID")->value())
 			? true
 			: false;
-	}
-
-	/**
-	 * Create a duplicate of this node. Doesn't affect joined data - create a
-	 * custom overloading of this if you need such behaviour.
-	 *
-	 * @return SiteTree The duplicated object.
-	 */
-	 public function doDuplicate($doWrite = true) 
-	 {
-		$item = parent::duplicate(false);
-		$this->extend('onBeforeDuplicate', $item);
- 
-        //Change the title so we know we are looking at the copy
-        $item->Title = 'Copy of ' . $this->Title;
-        $item->Status = 'Draft';
-        		
-		if($doWrite) {
-			$item->write();
-		}
-		
-		$this->extend('onAfterDuplicate', $page);
-		
-		return $item;
-	}
-	
-	/**
-	 * Publish this page.
-	 * 
-	 * @uses SiteTreeDecorator->onBeforePublish()
-	 * @uses SiteTreeDecorator->onAfterPublish()
-	 */
-	public function doPublish() 
-	{
-		if (!$this->canPublish()) return false;
-		
-		$original = Versioned::get_one_by_stage("DataObjectAsPage", "Live", "\"DataObjectAsPage\".\"ID\" = $this->ID");
-		if(!$original) $original = new DataObjectAsPage();
-
-		// Handle activities undertaken by decorators
-		$this->invokeWithExtensions('onBeforePublish', $original);
-		
-		$this->Status = "Published";
-		//$this->PublishedByID = Member::currentUser()->ID;
-		$this->write();
-		$this->publish("Stage", "Live");
-
-		// Handle activities undertaken by decorators
-		$this->invokeWithExtensions('onAfterPublish', $original);
-		
-		return true;
-	}
-
-	/**
-	 * Unpublish this DataObject - remove it from the live site
-	 * 
-	 */
-	public function doUnpublish() 
-	{
-		if(!$this->ID) return false;
-		if (!$this->canDeleteFromLive()) return false;
-		
-		$this->extend('onBeforeUnpublish');
-		
-		$origStage = Versioned::current_stage();
-		Versioned::reading_stage('Live');
-
-		// This way our ID won't be unset
-		$clone = clone $this;
-		$clone->delete();
-
-		Versioned::reading_stage($origStage);
-
-		// If we're on the draft site, then we can update the status.
-		// Otherwise, these lines will resurrect an inappropriate record
-		if(DB::query("SELECT \"ID\" FROM \"DataObjectAsPage\" WHERE \"ID\" = $this->ID")->value()
-			&& Versioned::current_stage() != 'Live') {
-			$this->Status = "Draft";
-			$this->write();
-		}
-
-		$this->extend('onAfterUnpublish');
-
-		return true;
-	}
-
-	/**
-	 * Function to delete the DOAP including from versioned tables
-	 */
-	public function doDelete() 
-	{
-		$this->doUnpublish();
-		
-		$oldMode = Versioned::get_reading_mode();
-		Versioned::reading_stage('Draft');
-
-		//delete all versioned objects with this ID
-		$result = DB::query("DELETE FROM DataObjectAsPage_versions WHERE RecordID = '$this->ID'");
-		$result = $this->delete();
-				
-		Versioned::set_reading_mode($oldMode);
-
-		return $result;
-	}
-	
-	
-	/**
-	 * Revert the draft changes: replace the draft content with the content on live
-	 */
-	public function doRevertToLive() 
-	{
-		$this->publish("Live", "Stage", false);
-
-		// Use a clone to get the updates made by $this->publish
-		$clone = DataObject::get_by_id("DataObjectAsPage", $this->ID);
-		$clone->writeWithoutVersion();
-		
-		$this->extend('onAfterRevertToLive');
-		
-		return $clone;
 	}
 	
 	/**

@@ -7,6 +7,7 @@ class DataObjectAsPageAdmin extends ModelAdmin
 	{
 	    parent::init();
 		
+		Versioned::reading_stage('Stage');
 		//Styling for preview links and status
 		Requirements::CSS(MOD_DOAP_DIR . '/css/dataobjectaspageadmin.css');
 	}
