@@ -449,10 +449,9 @@ class DataObjectAsPage extends DataObject {
 	 */
 	public function LookForExistingURLSegment($URLSegment, $ID)
 	{
-	   	return DataObjectAsPage::get()->filter(array(
-			'URLSegment' => $URLSegment,
-			'ID' => $ID
-		))->exists();
+	   	return DataObjectAsPage::get()->filter(
+			'URLSegment',$URLSegment
+		)->exclude('ID', $ID)->exists();
 	}
 	
 	/**
