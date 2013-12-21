@@ -31,19 +31,13 @@ class DataObjectAsPageHolder extends Page
 	/*
 	* Get Items which are to be displayed on this listing page
 	*/
-	public function FetchItems($itemClass, $filter = '', $sort = Null, $joins = Null, $limit = Null)
+	public function FetchItems($itemClass, $filter = null, $sort = Null, $limit = Null)
 	{
-		$results = $itemClass::get()->where($filter);
+		$results = $itemClass::get();
 		
-		if($joins)
+		if($filter)
 		{
-			foreach($joins as $type => $join)
-			{
-				if($results->hasMethod($type))
-				{
-					$results = $results->$type($table, $join);
-				}
-			}
+			$results = $results->filter($filter);
 		}
 		
 		if($sort)
@@ -112,13 +106,12 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 	{
 		//Set custom filter
 		$where = ($this->hasMethod('getItemsWhere')) ? $this->getItemsWhere() : Null;
+		
 		//Set custom sort		
 		$sort = ($this->hasMethod('getItemsSort')) ? $this->getItemsSort() : $this->stat('item_sort');
-		//Set custom join	
-		$join = ($this->hasMethod('getItemsJoin')) ? $this->getItemsJoin() : Null;
 		
 		//QUERY
-		$items = $this->FetchItems($this->Stat('item_class'), $where, $sort, $join, $limit);
+		$items = $this->FetchItems($this->Stat('item_class'), $where, $sort, $limit);
 
 		//Paginate the list
 		if(!$limit && $this->Paginate)
