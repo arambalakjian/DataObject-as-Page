@@ -95,7 +95,7 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 	private static $item_class = 'DataObjectAsPage';
 	private static $item_sort = 'Created DESC';
 	
-	public static $allowed_actions = array(
+	private static $allowed_actions = array(
 		'show'
 	);
 	
