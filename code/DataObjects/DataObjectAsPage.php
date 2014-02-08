@@ -213,7 +213,7 @@ class DataObjectAsPage extends DataObject {
 			$urlsegment = new SiteTreeURLSegmentField("URLSegment", $this->fieldLabel('URLSegment'));
 			
 			if($this->getListingPage()) {
-				$prefix = $this->getListingPage()->AbsoluteLink();
+				$prefix = $this->getListingPage()->AbsoluteLink('show').'/';
 			} else {
 				$prefix = Director::absoluteBaseURL() . 'listing-page/show/';
 			}
