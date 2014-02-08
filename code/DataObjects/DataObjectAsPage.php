@@ -211,7 +211,13 @@ class DataObjectAsPage extends DataObject {
 		if($this->ID)
 		{
 			$urlsegment = new SiteTreeURLSegmentField("URLSegment", $this->fieldLabel('URLSegment'));
-			$urlsegment->setURLPrefix(Director::absoluteBaseURL() . 'listing-page/show/');
+			
+			if($this->getListingPage()) {
+				$prefix = $this->getListingPage()->AbsoluteLink();
+			} else {
+				$prefix = Director::absoluteBaseURL() . 'listing-page/show/';
+			}
+			$urlsegment->setURLPrefix($prefix);
 			
 			$helpText = _t('SiteTreeURLSegmentField.HelpChars', ' Special characters are automatically converted or removed.');
 			$urlsegment->setHelpText($helpText);
