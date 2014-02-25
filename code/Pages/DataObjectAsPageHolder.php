@@ -37,7 +37,17 @@ class DataObjectAsPageHolder extends Page
 		
 		if($filter)
 		{
-			$results = $results->filter($filter);
+			if(is_array($filter))
+			{
+				foreach($filter as $type => $value)
+				{
+					$results = $results->$type($value);
+				}
+			}
+			else
+			{
+				$results = $results->filter($filter);			
+			}
 		}
 		
 		if($sort)
