@@ -309,7 +309,14 @@ class DataObjectAsPage extends DataObject {
 
 	public function getStatus()
 	{
-		return $this->isPublished() ? "Published" : "Draft";
+		if($this->isVersioned)
+		{
+			return $this->isPublished() ? "Published" : "Draft";			
+		}
+		else
+		{
+			return "Published (Staging disabled)";
+		}
 	}
 
 	/**
