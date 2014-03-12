@@ -28,7 +28,7 @@ DataObjectAsPage::enable_versioning();
 
 ## Installation
 
-Unpack and copy the mobile folder into your SilverStripe project.
+Unpack and copy the module folder into your SilverStripe project.
 
 Create 3 new Classes; The Item class, the Admin Class and the Listing Page class.
 
