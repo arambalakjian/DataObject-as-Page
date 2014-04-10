@@ -41,13 +41,12 @@ class DataObjectAsPageHolder extends Page
 			{
 				foreach($filter as $key => $value)
 				{
-					if($key == "filterany" || $key == "filter")
+					if($key == "filterany" || $key == "filter" || $key == "where")
 					{
 						$results = $results->$key($value);
 					}
-
 				}
-			}	
+			}
 			else
 			{
 				$results = $results->filter($filter);	
