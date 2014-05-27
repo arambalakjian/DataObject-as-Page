@@ -354,8 +354,9 @@ class DataObjectAsPage extends DataObject {
 	public function getListingPage(){
 		
 		$listingClass = $this->stat('listing_page_class');
-		
-		if(Controller::curr() instanceof $listingClass)
+		$controllerClass =  $listingClass . "_Controller";
+
+		if(Controller::curr() instanceof $controllerClass)
 		{
 			$listingPage = Controller::curr();
 		}
