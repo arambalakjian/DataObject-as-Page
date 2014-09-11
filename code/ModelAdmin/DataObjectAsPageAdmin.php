@@ -35,13 +35,6 @@ class DataObjectAsPageAdmin extends ModelAdmin
 
 	    return $form;
 	}
-	
-	/*
-	 * Temporary Fix for HTML editor Image/Link popup
-	 */
-	public function EditorToolbar() { 
-		return new ModelAdminHtmlEditorField_Toolbar($this, $this->name."/EditorToolbar"); 
-	}
 }
 
 /*
