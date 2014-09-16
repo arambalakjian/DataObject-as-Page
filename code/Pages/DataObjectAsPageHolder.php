@@ -133,6 +133,8 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 			$items->setPageLength($this->ItemsPerPage);
 		}
 
+		$this->extend('updateItems', $items);
+
 		return $items;
 	}
 	
@@ -146,15 +148,18 @@ class DataObjectAsPageHolder_Controller extends Page_Controller
 		
 		if($itemID)
 		{
-			return $class::get()->byID($itemID);
+			$item = $class::get()->byID($itemID);
+
 		}
 		elseif(isset($params['ID']))
 		{
 			//Sanitize
 			$URL = Convert::raw2sql($params['ID']);
 			
-			return $class::get()->filter("URLSegment", $URL)->first();
+			$item = $class::get()->filter("URLSegment", $URL)->first();
 		}		
+		$this->extend('updateCurrentItem', $item);
+		return $item;
 	}
 	
 	/*
