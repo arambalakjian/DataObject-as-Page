@@ -20,7 +20,7 @@ Searching has been removed for now but will hopefully be added back in future as
 
 For full instructions on use see: http://www.ssbits.com/tutorials/2012/dataobject-as-pages-the-module/
 
-##Versioning
+## Versioning
 
 Versioning is now optional, you can enable it by adding the following line to you _config.php
 
